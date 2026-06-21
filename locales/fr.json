@@ -1,0 +1,132 @@
+{
+  "app": {
+    "name": "Respire",
+    "tagline": "Reprends ton souffle, une minute a la fois."
+  },
+  "common": {
+    "continue": "Continuer",
+    "back": "Retour",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "confirm": "Confirmer",
+    "soon": "Bientot",
+    "premium": "Premium",
+    "free": "Gratuit",
+    "settings": "Parametres",
+    "stats": "Stats",
+    "journal": "Journal",
+    "sos": "SOS",
+    "days": "jours",
+    "hours": "heures",
+    "minutes": "minutes",
+    "seconds": "secondes",
+    "loading": "Chargement...",
+    "theme": "Theme",
+    "system": "Systeme",
+    "light": "Clair",
+    "dark": "Sombre",
+    "fr": "Francais",
+    "en": "Anglais",
+    "de": "Allemand"
+  },
+  "onboarding": {
+    "welcomeTitle": "Respire",
+    "welcomeBody": "Une app sobre pour voir ton progres, traverser les envies et garder le cap.",
+    "setupTitle": "Ton point de depart",
+    "setupBody": "On calcule tout localement a partir de trois donnees simples.",
+    "lastCigarette": "Derniere cigarette",
+    "cigarettesPerDay": "Cigarettes par jour",
+    "packPrice": "Prix du paquet (€)",
+    "readyTitle": "Pret",
+    "readyBody": "Ton compteur, tes economies et tes milestones sont prets.",
+    "start": "C est parti !",
+    "devSkip": "Passer l onboarding"
+  },
+  "home": {
+    "hero": "Sans fumer depuis",
+    "moneySaved": "Argent economise",
+    "avoided": "Cigarettes evitees",
+    "nextMilestone": "Prochain milestone",
+    "healthTeaser": "Progression sante",
+    "openStats": "Voir les stats",
+    "openSos": "Ouvrir SOS",
+    "equivalent": "Equivalent",
+    "today": "Aujourd hui"
+  },
+  "statsScreen": {
+    "title": "Statistiques",
+    "weekly": "Semaine",
+    "monthly": "Mois",
+    "total": "Total",
+    "healthTimeline": "Timeline sante",
+    "equivalents": "Equivalents",
+    "savingsCurve": "Courbe des economies"
+  },
+  "sosScreen": {
+    "title": "Mode SOS",
+    "subtitle": "Une action immediate pour laisser passer l envie.",
+    "breathing": "Respiration",
+    "game": "Mini-jeu",
+    "inhale": "Inspire",
+    "hold": "Pause",
+    "exhale": "Expire",
+    "cycles": "cycles",
+    "restart": "Recommencer",
+    "score": "Score",
+    "timeLeft": "Temps restant",
+    "done": "Session terminee"
+  },
+  "journalScreen": {
+    "title": "Journal",
+    "subtitle": "Suivi quotidien des envies et de l humeur.",
+    "mood": "Humeur",
+    "craving": "Intensite des envies",
+    "note": "Note libre",
+    "placeholder": "Ecris ce qui t a aide aujourd hui...",
+    "history": "30 derniers jours",
+    "lockedTitle": "Journal Premium",
+    "lockedBody": "Debloque le suivi quotidien, la heatmap et les tendances."
+  },
+  "paywall": {
+    "title": "Passe a Premium",
+    "subtitle": "Moins cher qu un paquet de cigarettes.",
+    "monthly": "4,99 €/mois",
+    "yearly": "34,99 €/an",
+    "yearlyBadge": "Le meilleur choix",
+    "restore": "Restaurer les achats",
+    "manage": "Gerer l abonnement",
+    "legal": "CGV et politique de confidentialite",
+    "freeFeatures": "Compteur, economies, milestones",
+    "premiumFeatures": "Journal, tendances, rappels avances"
+  },
+  "settingsScreen": {
+    "title": "Parametres",
+    "profile": "Profil fumeur",
+    "notifications": "Notifications",
+    "language": "Langue",
+    "subscription": "Abonnement",
+    "dailyReminder": "Rappel quotidien",
+    "reminderTime": "Heure du rappel",
+    "manageSubscription": "Portail abonnement",
+    "requestPermission": "Autoriser les notifications",
+    "permissionDenied": "Notifications refusees. Tu peux changer ca dans les reglages systeme."
+  },
+  "tabs": {
+    "home": "Accueil",
+    "stats": "Stats",
+    "journal": "Journal",
+    "settings": "Reglages"
+  },
+  "milestone": {
+    "title": "Milestone atteint",
+    "cta": "Continuer",
+    "share": "Continuer la serie"
+  },
+  "notifications": {
+    "dailyTitle": "Respire",
+    "dailyBody": "Un rappel calme pour rester sur ta trajectoire.",
+    "milestoneTitle": "Nouveau milestone",
+    "milestoneBody": "Tu viens de franchir {{label}} sans fumer."
+  }
+}

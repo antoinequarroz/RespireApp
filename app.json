@@ -1,25 +1,106 @@
 {
   "expo": {
-    "name": "respireApp",
-    "slug": "respireApp",
+    "name": "Respire",
+    "slug": "respire",
+    "scheme": "respire",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "assetBundlePatterns": ["**/*"],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#121212"
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "com.respire.app",
+      "deploymentTarget": "16.0",
+      "infoPlist": {
+        "NSUserNotificationsUsageDescription": "Respire utilise les notifications pour tes rappels quotidiens et milestones."
+      }
     },
     "android": {
+      "package": "com.respire.app",
+      "minSdkVersion": 26,
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#121212",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": false,
+          "data": [
+            {
+              "scheme": "respire",
+              "host": "sos"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ],
+      "permissions": ["RECEIVE_BOOT_COMPLETED", "VIBRATE"]
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
+    "plugins": [
+      "expo-router",
+      "expo-localization",
+      "expo-font",
+      "expo-splash-screen",
+      "expo-background-task",
+      "@react-native-community/datetimepicker",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#1B6CA8",
+          "sounds": []
+        }
+      ],
+      [
+        "expo-widgets",
+        {
+          "groupIdentifier": "group.com.respire.app",
+          "widgets": [
+            {
+              "name": "RespireWidget",
+              "displayName": "Respire",
+              "description": "Jours sans fumer et argent economise",
+              "contentMarginsDisabled": true,
+              "supportedFamilies": ["systemSmall", "systemMedium"]
+            }
+          ]
+        }
+      ],
+      [
+        "react-native-android-widget",
+        {
+          "widgets": [
+            {
+              "name": "RespireWidget",
+              "label": "Respire",
+              "minWidth": "120dp",
+              "minHeight": "120dp",
+              "description": "Vue rapide sevrage tabagique",
+              "previewImage": "./assets/icon.png",
+              "updatePeriodMillis": 1800000
+            }
+          ]
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "replace-with-your-eas-project-id"
+      }
     }
   }
 }

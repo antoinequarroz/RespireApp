@@ -1,8 +1,13 @@
-import { registerRootComponent } from 'expo';
+import 'expo-router/entry';
 
-import App from './App';
+import { registerWidgetTaskHandler } from 'react-native-android-widget';
 
-// registerRootComponent calls AppRegistry.registerComponent('main', () => App);
-// It also ensures that whether you load the app in Expo Go or in a native build,
-// the environment is set up appropriately
-registerRootComponent(App);
+import { openSosDeepLink, renderRespireAndroidWidget } from '@/services/widget';
+
+registerWidgetTaskHandler(async ({ clickAction, renderWidget, widgetAction }) => {
+  if (widgetAction === 'WIDGET_CLICK' && clickAction === 'OPEN_SOS') {
+    await openSosDeepLink();
+  }
+
+  renderWidget(renderRespireAndroidWidget());
+});

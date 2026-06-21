@@ -1,0 +1,46 @@
+{
+  "app": {
+    "name": "Respire",
+    "tagline": "Take your breath back, one minute at a time."
+  },
+  "common": {
+    "continue": "Continue",
+    "back": "Back",
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "confirm": "Confirm",
+    "soon": "Soon",
+    "premium": "Premium",
+    "free": "Free",
+    "settings": "Settings",
+    "stats": "Stats",
+    "journal": "Journal",
+    "sos": "SOS",
+    "days": "days",
+    "hours": "hours",
+    "minutes": "minutes",
+    "seconds": "seconds",
+    "loading": "Loading...",
+    "theme": "Theme",
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark",
+    "fr": "French",
+    "en": "English",
+    "de": "German"
+  },
+  "onboarding": {
+    "welcomeTitle": "Respire",
+    "welcomeBody": "A calm app to track progress, handle cravings and stay consistent.",
+    "setupTitle": "Your starting point",
+    "setupBody": "Everything is calculated locally from three simple inputs.",
+    "lastCigarette": "Last cigarette",
+    "cigarettesPerDay": "Cigarettes per day",
+    "packPrice": "Pack price (€)",
+    "readyTitle": "Ready",
+    "readyBody": "Your counter, savings and milestones are ready.",
+    "start": "Let s go!",
+    "devSkip": "Skip onboarding"
+  }
+}
