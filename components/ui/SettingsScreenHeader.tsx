@@ -1,5 +1,5 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { ChevronLeft } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 
 import { FONTS } from '@/constants/theme';
@@ -29,7 +29,7 @@ export function SettingsScreenHeader({ title, subtitle }: SettingsScreenHeaderPr
           borderColor: colors.bgCardBorder,
         }}
       >
-        <Ionicons name="chevron-back" size={16} color={colors.textPrimary} />
+        <ChevronLeft size={16} color={colors.textPrimary} strokeWidth={2} />
       </Pressable>
       <View style={{ gap: 4, flex: 1 }}>
         <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 18 }]}>{title}</Text>

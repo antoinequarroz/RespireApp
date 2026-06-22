@@ -19,6 +19,7 @@ export default function ReadyScreen() {
   const counter = useCounter();
 
   const profile = {
+    productType: onboardingDraft?.productType ?? 'cigarette',
     lastCigaretteAt: onboardingDraft?.lastCigaretteAt ?? new Date().toISOString(),
     cigarettesPerDay: onboardingDraft?.cigarettesPerDay ?? 10,
     packPrice: onboardingDraft?.packPrice ?? 11.5,
@@ -40,6 +41,8 @@ export default function ReadyScreen() {
       }}
     >
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: SPACING.xl }}>
+        <Text style={{ fontSize: 20, opacity: 0.85 }}>✦ ✦ ✦</Text>
+
         <View
           style={{
             width: 84,
@@ -56,8 +59,8 @@ export default function ReadyScreen() {
         </View>
 
         <View style={{ alignItems: 'center', gap: 8 }}>
-          <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 18, textAlign: 'center' }]}>
-            {i18n.t('onboarding.readyHeroTitle')}
+          <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 17, textAlign: 'center' }]}>
+            {i18n.t('onboarding.readyStartNow')}
           </Text>
           <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 13, textAlign: 'center' }]}>
             {i18n.t('onboarding.readyHeroBody')}
@@ -143,7 +146,7 @@ export default function ReadyScreen() {
           width: 104,
           height: 4,
           borderRadius: RADII.full,
-          backgroundColor: colors.dividerStrong,
+          backgroundColor: colors.homeIndicator,
           marginTop: SPACING.lg,
         }}
       />

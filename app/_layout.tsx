@@ -6,7 +6,7 @@ import {
   Poppins_800ExtraBold,
   useFonts,
 } from '@expo-google-fonts/poppins';
-import { Stack, usePathname, useRouter, useSegments } from 'expo-router';
+import { type Href, Stack, usePathname, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'nativewind';
@@ -15,8 +15,9 @@ import { AppState, useColorScheme as useNativeColorScheme, View } from 'react-na
 
 import { DARK, LIGHT } from '@/constants/theme';
 import { useMilestones } from '@/hooks/useMilestones';
+import { useSavings } from '@/hooks/useSavings';
 import { useTheme } from '@/hooks/useTheme';
-import { configureI18n, i18n } from '@/services/i18n';
+import { configureI18n } from '@/services/i18n';
 import {
   configureNotificationChannel,
   getNotificationPermissionStatus,
@@ -49,15 +50,22 @@ export default function RootLayout() {
   const reminderMinute = useUserStore((state) => state.reminderMinute);
   const milestoneNotificationsEnabled = useUserStore((state) => state.milestoneNotificationsEnabled);
   const motivationNotificationsEnabled = useUserStore((state) => state.motivationNotificationsEnabled);
+  const rewardGoalLabel = useUserStore((state) => state.rewardGoalLabel);
+  const rewardGoalAmount = useUserStore((state) => state.rewardGoalAmount);
   const { setColorScheme } = useColorScheme();
   const nativeScheme = useNativeColorScheme();
   const { colors, isDark } = useTheme();
+  const { moneySaved } = useSavings();
   const setNotificationPermissionGranted = useProgressStore(
     (state) => state.setNotificationPermissionGranted,
   );
+  const registerAppOpen = useProgressStore((state) => state.registerAppOpen);
   const markMilestoneCelebrated = useProgressStore((state) => state.markMilestoneCelebrated);
+  const celebratedRewardGoalKey = useProgressStore((state) => state.celebratedRewardGoalKey);
+  const markRewardGoalCelebrated = useProgressStore((state) => state.markRewardGoalCelebrated);
   const setPremiumStatus = usePremiumStore((state) => state.setPremiumStatus);
   const { nextToCelebrate } = useMilestones();
+  const rewardGoalKey = `${rewardGoalLabel}:${rewardGoalAmount}`;
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
     Poppins_700Bold,
@@ -109,9 +117,18 @@ export default function RootLayout() {
   }, [motivationNotificationsEnabled, reminderEnabled, reminderHour, reminderMinute]);
 
   useEffect(() => {
-    const subscription = AppState.addEventListener('change', () => undefined);
+    if (!hasHydrated) {
+      return;
+    }
+
+    registerAppOpen();
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        registerAppOpen();
+      }
+    });
     return () => subscription.remove();
-  }, []);
+  }, [hasHydrated, registerAppOpen]);
 
   useEffect(() => {
     if (fontsLoaded && hasHydrated) {
@@ -144,6 +161,46 @@ export default function RootLayout() {
     markMilestoneCelebrated,
     nextToCelebrate,
     pathname,
+    router,
+    segments,
+  ]);
+
+  useEffect(() => {
+    const topSegment = segments[0];
+    const inOnboardingGroup = topSegment === '(onboarding)';
+    const inLaunchFlow =
+      pathname === '/' ||
+      pathname === '/sos' ||
+      pathname === '/reward' ||
+      pathname === '/reward-achieved' ||
+      inOnboardingGroup;
+
+    if (
+      !hasHydrated ||
+      !hasCompletedOnboarding ||
+      inLaunchFlow ||
+      rewardGoalAmount <= 0 ||
+      moneySaved < rewardGoalAmount ||
+      celebratedRewardGoalKey === rewardGoalKey
+    ) {
+      return;
+    }
+
+    if (AppState.currentState !== 'active') {
+      return;
+    }
+
+    markRewardGoalCelebrated(rewardGoalKey);
+    router.push('/reward-achieved' as Href);
+  }, [
+    celebratedRewardGoalKey,
+    hasCompletedOnboarding,
+    hasHydrated,
+    markRewardGoalCelebrated,
+    moneySaved,
+    pathname,
+    rewardGoalAmount,
+    rewardGoalKey,
     router,
     segments,
   ]);
@@ -229,11 +286,22 @@ export default function RootLayout() {
             },
           }}
         />
+        <Stack.Screen
+          name="zen"
+          options={{
+            presentation: 'fullScreenModal',
+            contentStyle: {
+              backgroundColor: isDark ? DARK.bgSos : LIGHT.bgSos,
+            },
+          }}
+        />
         <Stack.Screen name="relapse" options={{ presentation: 'transparentModal' }} />
-        <Stack.Screen name="paywall" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="reward" options={{ presentation: 'fullScreenModal' }} />
+        <Stack.Screen name="reward-achieved" options={{ presentation: 'fullScreenModal' }} />
+        <Stack.Screen name="paywall" options={{ presentation: 'fullScreenModal' }} />
         <Stack.Screen
           name="milestone/[id]"
-          options={{ headerShown: true, title: i18n.t('milestone.title') }}
+          options={{ presentation: 'fullScreenModal', headerShown: false }}
         />
       </Stack>
     </>

@@ -12,6 +12,8 @@ interface UserState {
   onboardingDraft: OnboardingDraft | null;
   hasCompletedOnboarding: boolean;
   hasHydrated: boolean;
+  rewardGoalLabel: string;
+  rewardGoalAmount: number;
   reminderEnabled: boolean;
   reminderHour: number;
   reminderMinute: number;
@@ -24,6 +26,7 @@ interface UserState {
   updateOnboardingDraft: (draft: OnboardingDraft) => void;
   clearOnboardingDraft: () => void;
   completeOnboarding: () => void;
+  setRewardGoal: (label: string, amount: number) => void;
   setReminder: (enabled: boolean, hour: number, minute: number) => void;
   setNotificationPreferences: (values: {
     milestoneNotificationsEnabled?: boolean;
@@ -41,6 +44,8 @@ export const useUserStore = create<UserState>()(
       onboardingDraft: null,
       hasCompletedOnboarding: false,
       hasHydrated: false,
+      rewardGoalLabel: 'iPhone 15',
+      rewardGoalAmount: 1200,
       reminderEnabled: true,
       reminderHour: 19,
       reminderMinute: 0,
@@ -54,6 +59,7 @@ export const useUserStore = create<UserState>()(
         set((state) => ({ onboardingDraft: { ...state.onboardingDraft, ...draft } })),
       clearOnboardingDraft: () => set({ onboardingDraft: null }),
       completeOnboarding: () => set({ hasCompletedOnboarding: true }),
+      setRewardGoal: (label, amount) => set({ rewardGoalLabel: label, rewardGoalAmount: amount }),
       setReminder: (enabled, hour, minute) =>
         set({ reminderEnabled: enabled, reminderHour: hour, reminderMinute: minute }),
       setNotificationPreferences: (values) => set(values),

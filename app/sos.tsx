@@ -1,5 +1,5 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { X } from 'lucide-react-native';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { BreathingExercise } from '@/components/domain/BreathingExercise';
@@ -18,39 +18,27 @@ export default function SosScreen() {
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: colors.bgSos }}
+      style={{ flex: 1, backgroundColor: fixed.sosBg }}
       contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 52, paddingBottom: SPACING.xxl, gap: 16 }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Text
-          style={[
-            FONTS.bold,
-            {
-              color: fixed.sos,
-              fontSize: 9,
-              letterSpacing: 2,
-              textTransform: 'uppercase',
-            },
-          ]}
-        >
-          {i18n.t('common.sos')}
-        </Text>
+        <Text style={[FONTS.black, { color: fixed.sos, fontSize: 14 }]}>{i18n.t('sosScreen.title')}</Text>
         <Pressable
           onPress={() => router.back()}
           style={{
-            width: 30,
-            height: 30,
+            width: 28,
+            height: 28,
             borderRadius: 10,
-            backgroundColor: colors.bgCard,
+            backgroundColor: 'rgba(255,255,255,0.06)',
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <Ionicons name="close" size={16} color={colors.textSecondary} />
+          <X size={16} color={colors.textPrimary} strokeWidth={2} />
         </Pressable>
       </View>
 
-      <View style={{ alignItems: 'center', marginTop: 8, marginBottom: 4 }}>
+      <View style={{ alignItems: 'center', marginTop: 2 }}>
         <View
           style={{
             width: 28,
@@ -61,15 +49,6 @@ export default function SosScreen() {
         />
       </View>
 
-      <View style={{ gap: 6 }}>
-        <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 18 }]}>
-          {i18n.t('sosScreen.cravingTitle')}
-        </Text>
-        <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 13 }]}>
-          {i18n.t('sosScreen.cravingBody')}
-        </Text>
-      </View>
-
       <View
         style={{
           flexDirection: 'row',
@@ -77,7 +56,7 @@ export default function SosScreen() {
           borderRadius: RADII.lg,
           borderWidth: 0.5,
           borderColor: colors.accentBorder,
-          backgroundColor: colors.bgCard,
+          backgroundColor: 'rgba(255,255,255,0.04)',
           padding: 4,
         }}
       >
@@ -97,10 +76,17 @@ export default function SosScreen() {
                 borderRadius: RADII.md,
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: active ? fixed.purple : 'transparent',
+                backgroundColor: active ? 'rgba(124,58,237,0.18)' : 'transparent',
+                borderWidth: active ? 1 : 0,
+                borderColor: active ? 'rgba(167,139,250,0.35)' : 'transparent',
               }}
             >
-              <Text style={[active ? FONTS.bold : FONTS.regular, { color: active ? '#FFFFFF' : colors.textSecondary, fontSize: 12 }]}>
+              <Text
+                style={[
+                  active ? FONTS.bold : FONTS.regular,
+                  { color: active ? colors.accent : colors.textSecondary, fontSize: 11 },
+                ]}
+              >
                 {item.label}
               </Text>
             </Pressable>
@@ -109,7 +95,7 @@ export default function SosScreen() {
       </View>
 
       {mode === 'breathing' ? (
-        <BreathingExercise onComplete={completeSession} />
+        <BreathingExercise onComplete={completeSession} techniqueId="box" cycleCount={4} tone="sos" />
       ) : (
         <DistractionGame onComplete={completeSession} />
       )}
@@ -117,27 +103,19 @@ export default function SosScreen() {
       {sessionDone ? (
         <Card
           style={{
-            backgroundColor: colors.accentBg,
-            borderColor: colors.accentBorder,
-            borderWidth: 1,
+            backgroundColor: 'rgba(255,255,255,0.04)',
+            borderColor: colors.bgCardBorder,
             gap: 8,
           }}
         >
-          <Text
-            style={[
-              FONTS.bold,
-              { color: colors.accent, fontSize: 8, letterSpacing: 1.2, textTransform: 'uppercase' },
-            ]}
-          >
-            {i18n.t('sosScreen.doneLabel')}
-          </Text>
           <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 18 }]}>
             {i18n.t('sosScreen.doneTitle')}
           </Text>
           <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 13 }]}>
             {i18n.t('sosScreen.doneBody')}
           </Text>
-          <Button label={i18n.t('sosScreen.finishExercise')} onPress={() => router.back()} />
+          <Button label={i18n.t('sosScreen.restart')} onPress={() => router.replace('/sos')} />
+          <Button label={i18n.t('common.close')} variant="secondary" onPress={() => router.back()} />
         </Card>
       ) : (
         <Text

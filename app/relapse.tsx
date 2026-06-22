@@ -1,9 +1,10 @@
 import { useRouter } from 'expo-router';
+import { RefreshCcw } from 'lucide-react-native';
 import { Alert, Pressable, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { FONTS, SPACING } from '@/constants/theme';
+import { FONTS, RADII, SPACING } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { i18n } from '@/services/i18n';
 import { useUserStore } from '@/store/userStore';
@@ -40,24 +41,50 @@ export default function RelapseScreen() {
       style={{
         flex: 1,
         backgroundColor: 'rgba(12, 10, 30, 0.72)',
-        justifyContent: 'center',
-        paddingHorizontal: SPACING.lg,
+        justifyContent: 'flex-end',
       }}
     >
       <Card
         style={{
+          borderBottomLeftRadius: 0,
+          borderBottomRightRadius: 0,
           backgroundColor: colors.bgSurface,
           borderColor: colors.bgCardBorder,
           gap: SPACING.md,
           paddingHorizontal: SPACING.lg,
-          paddingVertical: SPACING.lg,
+          paddingTop: 14,
+          paddingBottom: SPACING.xxl,
         }}
       >
+        <View style={{ alignItems: 'center', marginBottom: 4 }}>
+          <View
+            style={{
+              width: 30,
+              height: 4,
+              borderRadius: RADII.full,
+              backgroundColor: colors.dividerStrong,
+            }}
+          />
+        </View>
+
+        <View
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: RADII.lg,
+            backgroundColor: colors.accentBg,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <RefreshCcw size={18} color={colors.accent} strokeWidth={1.5} />
+        </View>
+
         <View style={{ gap: 6 }}>
-          <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 18 }]}>
+          <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 16 }]}>
             {i18n.t('relapse.title')}
           </Text>
-          <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 13 }]}>
+          <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 11 }]}>
             {i18n.t('relapse.body')}
           </Text>
         </View>
@@ -74,7 +101,7 @@ export default function RelapseScreen() {
         />
 
         <Pressable onPress={() => router.back()} style={{ paddingVertical: 6 }}>
-          <Text style={[FONTS.regular, { color: colors.textMuted, fontSize: 12, textAlign: 'center' }]}>
+          <Text style={[FONTS.regular, { color: colors.textMuted, fontSize: 11, textAlign: 'center' }]}>
             {i18n.t('relapse.cancel')}
           </Text>
         </Pressable>

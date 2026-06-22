@@ -11,7 +11,7 @@ import { useProgressStore } from '@/store/progressStore';
 
 export default function NotificationPermissionScreen() {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, fixed } = useTheme();
   const setNotificationPermissionGranted = useProgressStore(
     (state) => state.setNotificationPermissionGranted,
   );
@@ -34,7 +34,7 @@ export default function NotificationPermissionScreen() {
             style={{
               width: 72,
               height: 72,
-              borderRadius: 999,
+              borderRadius: 22,
               borderWidth: 1,
               borderColor: colors.accentBorder,
               backgroundColor: colors.accentBg,
@@ -42,15 +42,26 @@ export default function NotificationPermissionScreen() {
               justifyContent: 'center',
             }}
           >
-            <Text style={[FONTS.black, { color: colors.accent, fontSize: 28 }]}>◌</Text>
+            <Text style={[FONTS.black, { color: colors.accent, fontSize: 28 }]}>🔔</Text>
+            <View
+              style={{
+                position: 'absolute',
+                top: 14,
+                right: 14,
+                width: 8,
+                height: 8,
+                borderRadius: 4,
+                backgroundColor: fixed.sos,
+              }}
+            />
           </View>
         </View>
 
         <View style={{ gap: 8 }}>
-          <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 22, textAlign: 'center' }]}>
+          <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 18, textAlign: 'center' }]}>
             {i18n.t('onboarding.notificationsTitle')}
           </Text>
-          <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 13, textAlign: 'center' }]}>
+          <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 11, textAlign: 'center' }]}>
             {i18n.t('onboarding.notificationsBody')}
           </Text>
         </View>

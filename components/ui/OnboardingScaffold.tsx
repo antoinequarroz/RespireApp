@@ -1,16 +1,17 @@
+import { ChevronLeft } from 'lucide-react-native';
+import type { ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { FONTS, RADII, SPACING } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
-import { i18n } from '@/services/i18n';
 
 interface OnboardingScaffoldProps {
   step: number;
   total: number;
   title: string;
   subtitle: string;
-  children: React.ReactNode;
-  footer?: React.ReactNode;
+  children: ReactNode;
+  footer?: ReactNode;
   onBack?: () => void;
 }
 
@@ -40,9 +41,9 @@ export function OnboardingScaffold({
           <Pressable
             onPress={onBack}
             style={{
-              width: 32,
-              height: 32,
-              borderRadius: RADII.md,
+              width: 28,
+              height: 28,
+              borderRadius: 9,
               backgroundColor: colors.bgCard,
               borderWidth: 0.5,
               borderColor: colors.bgCardBorder,
@@ -52,12 +53,13 @@ export function OnboardingScaffold({
             }}
             disabled={!onBack}
           >
-            <Text style={[FONTS.bold, { color: colors.textSecondary, fontSize: 16 }]}>{'<'}</Text>
+            <ChevronLeft size={16} color={colors.textSecondary} strokeWidth={2} />
           </Pressable>
 
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             {Array.from({ length: total }, (_, index) => {
               const active = index + 1 === step;
+
               return (
                 <View
                   key={index}
@@ -72,10 +74,10 @@ export function OnboardingScaffold({
             })}
           </View>
 
-          <View style={{ width: 32 }} />
+          <View style={{ width: 28 }} />
         </View>
 
-        <View style={{ gap: 6 }}>
+        <View style={{ gap: 8 }}>
           <Text
             style={[
               FONTS.bold,
@@ -87,12 +89,10 @@ export function OnboardingScaffold({
               },
             ]}
           >
-            {i18n.t('onboarding.stepLabel', { current: step, total })}
+            {step} / {total}
           </Text>
-          <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 18, lineHeight: 24 }]}>
-            {title}
-          </Text>
-          <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 13, lineHeight: 18 }]}>
+          <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 16, lineHeight: 22 }]}>{title}</Text>
+          <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 10, lineHeight: 15 }]}>
             {subtitle}
           </Text>
         </View>
@@ -108,7 +108,7 @@ export function OnboardingScaffold({
           width: 104,
           height: 4,
           borderRadius: RADII.full,
-          backgroundColor: colors.dividerStrong,
+          backgroundColor: colors.homeIndicator,
           marginTop: SPACING.lg,
         }}
       />
@@ -129,16 +129,16 @@ export function OnboardingOptionCard({
   selected,
   onPress,
 }: OnboardingOptionCardProps) {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
 
   return (
     <Pressable
       onPress={onPress}
       style={{
-        borderRadius: 14,
+        borderRadius: 13,
         borderWidth: 1,
-        borderColor: selected ? colors.accent : colors.bgCardBorder,
-        backgroundColor: selected ? colors.accentBg : isDark ? colors.bgSurface : colors.bgSurface,
+        borderColor: selected ? colors.borderSelected : colors.bgCardBorder,
+        backgroundColor: selected ? colors.cardSelected : colors.bgCard,
         paddingHorizontal: 14,
         paddingVertical: subtitle ? 14 : 16,
         flexDirection: 'row',
@@ -173,7 +173,7 @@ export function OnboardingOptionCard({
           height: 18,
           borderRadius: RADII.full,
           borderWidth: 1,
-          borderColor: selected ? colors.accent : colors.accentBorder,
+          borderColor: selected ? colors.borderSelected : colors.accentBorder,
           alignItems: 'center',
           justifyContent: 'center',
         }}

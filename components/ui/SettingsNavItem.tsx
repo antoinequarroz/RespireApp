@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { ChevronRight } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 
 import { FONTS } from '@/constants/theme';
@@ -50,7 +50,7 @@ export function SettingsNavItem({ label, value, badge, onPress }: SettingsNavIte
             <Text style={[FONTS.bold, { color: colors.accent, fontSize: 8 }]}>{badge}</Text>
           </View>
         ) : null}
-        <Ionicons name="chevron-forward" size={14} color={colors.textMuted} />
+        <ChevronRight size={14} color={colors.textMuted} strokeWidth={1.5} />
       </View>
     </Pressable>
   );

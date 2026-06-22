@@ -1,11 +1,13 @@
 import { HEALTH_TIMELINE } from '@/constants/healthTimeline';
 import { MILESTONES } from '@/constants/milestones';
 import { MONEY_EQUIVALENTS } from '@/constants/moneyEquivalents';
+import { getProductConfig, type ProductType } from '@/constants/productConfig';
 
 export type AppLanguage = 'fr' | 'en' | 'de';
 export type AppTheme = 'light' | 'dark' | 'system';
 
 export interface UserProfile {
+  productType: ProductType;
   lastCigaretteAt: string;
   cigarettesPerDay: number;
   packPrice: number;
@@ -79,13 +81,17 @@ export function getCounterBreakdown(lastCigaretteAt?: string, now = Date.now()):
 export function getAvoidedCigarettes(
   lastCigaretteAt?: string,
   cigarettesPerDay = 0,
+  productType: ProductType = 'cigarette',
   now = Date.now(),
 ): number {
   if (!lastCigaretteAt || cigarettesPerDay <= 0) {
     return 0;
   }
 
-  const msPerCigarette = DAY_MS / cigarettesPerDay;
+  const config = getProductConfig(productType);
+  const unitsPerDay =
+    config.quantityCadence === 'day' ? cigarettesPerDay : cigarettesPerDay / 7;
+  const msPerCigarette = DAY_MS / unitsPerDay;
   return Math.floor(getElapsedMs(lastCigaretteAt, now) / msPerCigarette);
 }
 
@@ -93,13 +99,17 @@ export function getMoneySaved(
   lastCigaretteAt?: string,
   cigarettesPerDay = 0,
   packPrice = 0,
+  productType: ProductType = 'cigarette',
   now = Date.now(),
 ): number {
   if (cigarettesPerDay <= 0 || packPrice <= 0) {
     return 0;
   }
 
-  return (getAvoidedCigarettes(lastCigaretteAt, cigarettesPerDay, now) / 20) * packPrice;
+  const config = getProductConfig(productType);
+  return (
+    getAvoidedCigarettes(lastCigaretteAt, cigarettesPerDay, productType, now) / config.unitsPerPrice
+  ) * packPrice;
 }
 
 export function pickMoneyEquivalent(moneySaved: number, rotationIndex = 0): RewardEquivalent {
@@ -124,8 +134,13 @@ export function getSavingsSeries(
     return Array.from({ length: totalDays }, (_, index) => ({ x: index, y: 0 }));
   }
 
-  const pricePerCigarette = profile.packPrice / 20;
-  const perDay = profile.cigarettesPerDay * pricePerCigarette;
+  const config = getProductConfig(profile.productType);
+  const unitsPerDay =
+    config.quantityCadence === 'day'
+      ? profile.cigarettesPerDay
+      : profile.cigarettesPerDay / 7;
+  const pricePerUnit = profile.packPrice / config.unitsPerPrice;
+  const perDay = unitsPerDay * pricePerUnit;
 
   return Array.from({ length: totalDays }, (_, index) => ({
     x: index,

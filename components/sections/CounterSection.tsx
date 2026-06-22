@@ -13,21 +13,46 @@ interface CounterSectionProps {
   onRelapsePress?: () => void;
 }
 
-function StatChip({ label, value }: { label: string; value: string }) {
+function StatSegment({
+  label,
+  value,
+  withDivider = false,
+}: {
+  label: string;
+  value: string;
+  withDivider?: boolean;
+}) {
   const { colors } = useTheme();
 
   return (
-    <View
-      style={{
-        borderRadius: 6,
-        backgroundColor: colors.accentBg,
-        paddingHorizontal: 7,
-        paddingVertical: 2,
-      }}
-    >
-      <Text style={[FONTS.bold, { fontSize: 11, color: colors.accentSoft }]}>
-        {value} {label}
-      </Text>
+    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      <View style={{ alignItems: 'center', minWidth: 70 }}>
+        <Text style={[FONTS.black, { fontSize: 19, color: colors.accent }]}>{value}</Text>
+        <Text
+          style={[
+            FONTS.bold,
+            {
+              fontSize: 8,
+              color: colors.accent,
+              opacity: 0.55,
+              letterSpacing: 1.5,
+              textTransform: 'uppercase',
+            },
+          ]}
+        >
+          {label}
+        </Text>
+      </View>
+      {withDivider ? (
+        <View
+          style={{
+            width: 1,
+            height: 26,
+            marginLeft: 12,
+            backgroundColor: 'rgba(167,139,250,0.18)',
+          }}
+        />
+      ) : null}
     </View>
   );
 }
@@ -46,15 +71,15 @@ export function CounterSection({
       style={{
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 8,
-        paddingTop: 12,
-        paddingBottom: 4,
+        gap: 10,
+        paddingTop: 10,
+        paddingBottom: 2,
       }}
     >
-      <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap' }}>
-        <StatChip label="jours" value={String(days)} />
-        <StatChip label="h" value={String(hours)} />
-        <StatChip label="min" value={String(minutes)} />
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+        <StatSegment label="jours" value={String(days)} withDivider />
+        <StatSegment label="h" value={String(hours)} withDivider />
+        <StatSegment label="min" value={String(minutes)} />
       </View>
 
       <View style={{ alignItems: 'center', gap: 2 }}>
@@ -97,7 +122,7 @@ export function CounterSection({
           borderRadius: 13,
           borderWidth: 0.5,
           borderColor: colors.bgCardBorder,
-          backgroundColor: colors.bgSurface,
+          backgroundColor: colors.bgCard,
           paddingHorizontal: 12,
           paddingVertical: 10,
           flexDirection: 'row',

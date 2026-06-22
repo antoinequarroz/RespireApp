@@ -1,11 +1,14 @@
 import { useRouter } from 'expo-router';
+import { Award, CheckCircle2, Circle, TrendingUp, Wind } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import { AppLogo } from '@/components/ui/AppLogo';
 import { Card } from '@/components/ui/Card';
+import { getProductConfig } from '@/constants/productConfig';
 import { FONTS, RADII, SPACING } from '@/constants/theme';
+import { useBehaviorBadges } from '@/hooks/useBehaviorBadges';
 import { useHealthStats } from '@/hooks/useHealthStats';
 import { useMilestones } from '@/hooks/useMilestones';
 import { useSavings } from '@/hooks/useSavings';
@@ -34,11 +37,17 @@ export default function StatsScreen() {
   const profile = useUserStore((state) => state.profile);
   const savings = useSavings();
   const milestones = useMilestones();
+  const behaviorBadges = useBehaviorBadges();
   const health = useHealthStats();
   const [range, setRange] = useState<RangeKey>('30d');
-  const avoided = getAvoidedCigarettes(profile?.lastCigaretteAt, profile?.cigarettesPerDay ?? 0);
-  const packsAvoided = avoided / 20;
-  const tobaccoGrams = avoided;
+  const productType = profile?.productType ?? 'cigarette';
+  const productConfig = getProductConfig(productType);
+  const avoided = getAvoidedCigarettes(
+    profile?.lastCigaretteAt,
+    profile?.cigarettesPerDay ?? 0,
+    productType,
+  );
+  const packageEquivalents = avoided / productConfig.unitsPerPrice;
 
   const rangeSeries = useMemo(() => {
     if (range === '7d') {
@@ -52,7 +61,11 @@ export default function StatsScreen() {
       return formatCurrency(0);
     }
 
-    const daily = (profile.packPrice / 20) * profile.cigarettesPerDay;
+    const unitsPerDay =
+      productConfig.quantityCadence === 'day'
+        ? profile.cigarettesPerDay
+        : profile.cigarettesPerDay / 7;
+    const daily = (profile.packPrice / productConfig.unitsPerPrice) * unitsPerDay;
 
     if (range === '7d') {
       return formatCurrency(daily * 7);
@@ -62,7 +75,17 @@ export default function StatsScreen() {
     }
 
     return savings.moneySavedFormatted;
-  }, [profile, range, savings.moneySavedFormatted]);
+  }, [productConfig.quantityCadence, productConfig.unitsPerPrice, profile, range, savings.moneySavedFormatted]);
+
+  const avoidedDetail = useMemo(() => {
+    if (productType === 'rolling') {
+      return `${packageEquivalents.toFixed(1)} ${i18n.t('statsScreen.tobaccoPouches')}`;
+    }
+    if (productType === 'pipe') {
+      return `${packageEquivalents.toFixed(1)} ${i18n.t('statsScreen.pipePouches')}`;
+    }
+    return `${packageEquivalents.toFixed(1)} ${i18n.t(`products.${productType}.statsEquivalentLabel`)}`;
+  }, [packageEquivalents, productType]);
 
   return (
     <ScrollView
@@ -142,7 +165,7 @@ export default function StatsScreen() {
         </View>
 
         <Svg width="100%" height={140} viewBox="0 0 300 120">
-          <Path d={buildPath(rangeSeries)} stroke={colors.accent} strokeWidth={4} fill="none" />
+          <Path d={buildPath(rangeSeries)} stroke={colors.emerald} strokeWidth={4} fill="none" />
         </Svg>
       </Card>
 
@@ -159,12 +182,10 @@ export default function StatsScreen() {
               },
             ]}
           >
-            {i18n.t('home.avoided')}
+            {i18n.t(`products.${productType}.avoidedLabel`)}
           </Text>
           <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 22 }]}>{avoided}</Text>
-          <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 11 }]}>
-            {packsAvoided.toFixed(1)} {i18n.t('statsScreen.packsAvoided')} - {tobaccoGrams} g {i18n.t('statsScreen.tobacco')}
-          </Text>
+          <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 11 }]}>{avoidedDetail}</Text>
         </Card>
 
         <Card
@@ -176,20 +197,23 @@ export default function StatsScreen() {
             gap: 6,
           }}
         >
-          <Text
-            style={[
-              FONTS.bold,
-              {
-                color: colors.emerald,
-                opacity: 0.6,
-                fontSize: 8,
-                letterSpacing: 1.2,
-                textTransform: 'uppercase',
-              },
-            ]}
-          >
-            {i18n.t('statsScreen.equivalents')}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <TrendingUp color={colors.emerald} size={14} strokeWidth={1.5} />
+            <Text
+              style={[
+                FONTS.bold,
+                {
+                  color: colors.emerald,
+                  opacity: 0.6,
+                  fontSize: 8,
+                  letterSpacing: 1.2,
+                  textTransform: 'uppercase',
+                },
+              ]}
+            >
+              {i18n.t('statsScreen.equivalents')}
+            </Text>
+          </View>
           <Text style={[FONTS.black, { color: colors.emerald, fontSize: 22 }]}>{savings.equivalent.emoji}</Text>
           <Text style={[FONTS.regular, { color: colors.emerald, fontSize: 11, opacity: 0.8 }]}>
             {savings.equivalent.labelFr}
@@ -226,28 +250,75 @@ export default function StatsScreen() {
                   gap: 12,
                 }}
               >
-                <View
-                  style={{
-                    width: 18,
-                    height: 18,
-                    borderRadius: RADII.full,
-                    borderWidth: 1,
-                    borderColor: item.reached ? colors.emeraldBorder : colors.accentBorder,
-                    backgroundColor: item.reached ? colors.emeraldBg : 'transparent',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Text style={[FONTS.bold, { color: item.reached ? colors.emerald : colors.accent, fontSize: 9 }]}>
-                    {item.reached ? '✓' : '·'}
-                  </Text>
-                </View>
+                {item.reached ? (
+                  <CheckCircle2 size={18} color={colors.emerald} strokeWidth={1.5} />
+                ) : isNext ? (
+                  <Award size={18} color={colors.accent} strokeWidth={1.5} />
+                ) : (
+                  <Circle size={18} color={colors.textMuted} strokeWidth={1.5} />
+                )}
                 <Text style={[FONTS.regular, { flex: 1, color: colors.textPrimary, fontSize: 13 }]}>
                   {item.labelFr}
                 </Text>
               </View>
             );
           })}
+        </View>
+      </Card>
+
+      <Card style={{ gap: SPACING.md, backgroundColor: colors.bgSurface }}>
+        <View style={{ gap: 4 }}>
+          <Text style={[FONTS.black, { fontSize: 18, color: colors.textPrimary }]}>
+            {i18n.t('statsScreen.behaviorBadges')}
+          </Text>
+          <Text style={[FONTS.regular, { fontSize: 13, color: colors.textSecondary }]}>
+            {i18n.t('statsScreen.behaviorBadgesSubtitle')}
+          </Text>
+        </View>
+
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+          {behaviorBadges.badges.map((item) => (
+            <View
+              key={item.id}
+              style={{
+                width: '47%',
+                borderRadius: 12,
+                borderWidth: 0.5,
+                borderColor: item.reached ? colors.accentBorder : colors.bgCardBorder,
+                backgroundColor: item.reached ? colors.accentBg : colors.bgCard,
+                paddingHorizontal: 12,
+                paddingVertical: 14,
+                gap: 6,
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                {item.icon === 'wind' ? (
+                  <Wind size={16} color={item.reached ? colors.accent : colors.textMuted} strokeWidth={1.5} />
+                ) : item.icon === 'trending_up' ? (
+                  <TrendingUp size={16} color={item.reached ? colors.accent : colors.textMuted} strokeWidth={1.5} />
+                ) : item.icon === 'book' ? (
+                  <Award size={16} color={item.reached ? colors.accent : colors.textMuted} strokeWidth={1.5} />
+                ) : item.icon === 'zap' ? (
+                  <Award size={16} color={item.reached ? colors.accent : colors.textMuted} strokeWidth={1.5} />
+                ) : item.icon === 'flame' ? (
+                  <Award size={16} color={item.reached ? colors.accent : colors.textMuted} strokeWidth={1.5} />
+                ) : (
+                  <Award size={16} color={item.reached ? colors.accent : colors.textMuted} strokeWidth={1.5} />
+                )}
+                <Text
+                  style={[
+                    FONTS.bold,
+                    { color: item.reached ? colors.textPrimary : colors.textSecondary, fontSize: 13 },
+                  ]}
+                >
+                  {item.labelFr}
+                </Text>
+              </View>
+              <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 10 }]}>
+                {item.descriptionFr}
+              </Text>
+            </View>
+          ))}
         </View>
       </Card>
 
@@ -277,7 +348,7 @@ export default function StatsScreen() {
                 gap: 6,
               }}
             >
-              <Text style={{ fontSize: 18 }}>{item.reached ? '🏅' : '○'}</Text>
+              <Award size={18} color={item.reached ? colors.accent : colors.textMuted} strokeWidth={1.5} />
               <Text
                 style={[
                   FONTS.bold,

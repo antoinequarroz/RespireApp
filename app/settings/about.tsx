@@ -1,7 +1,7 @@
-import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
+import { ChevronRight } from 'lucide-react-native';
 import { Alert, Linking, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { SettingsScreenHeader } from '@/components/ui/SettingsScreenHeader';
@@ -45,7 +45,7 @@ function LinkRow({
       >
         {label}
       </Text>
-      <Ionicons name="chevron-forward" size={14} color={destructive ? fixed.sos : colors.textMuted} />
+      <ChevronRight size={14} color={destructive ? fixed.sos : colors.textMuted} strokeWidth={1.5} />
     </Pressable>
   );
 }
@@ -63,6 +63,8 @@ export default function SettingsAboutScreen() {
       onboardingDraft: null,
       hasCompletedOnboarding: false,
       hasHydrated: true,
+      rewardGoalLabel: 'iPhone 15',
+      rewardGoalAmount: 1200,
       reminderEnabled: true,
       reminderHour: 19,
       reminderMinute: 0,
@@ -75,7 +77,11 @@ export default function SettingsAboutScreen() {
     useProgressStore.setState({
       journalEntries: [],
       celebratedMilestones: [],
+      celebratedRewardGoalKey: null,
       cravingsHandled: 0,
+      appOpenStreak: 0,
+      lastAppOpenAt: null,
+      zenSessionsCompleted: 0,
       lastSosMode: 'breathing',
       notificationPermissionGranted: false,
     });

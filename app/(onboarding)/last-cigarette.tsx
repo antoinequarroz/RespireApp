@@ -1,7 +1,7 @@
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Platform, Text, View } from 'react-native';
+import { Platform, Pressable, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { OnboardingOptionCard, OnboardingScaffold } from '@/components/ui/OnboardingScaffold';
@@ -65,36 +65,15 @@ export default function LastCigaretteScreen() {
 
   return (
     <OnboardingScaffold
-      step={1}
-      total={4}
+      step={2}
+      total={5}
       title={i18n.t('onboarding.lastCigaretteTitle')}
       subtitle={i18n.t('onboarding.lastCigaretteBody')}
       onBack={() => router.back()}
       footer={<Button label={i18n.t('common.continue')} onPress={() => router.push('/cigarettes-per-day')} />}
     >
       <View style={{ gap: SPACING.md }}>
-        <OnboardingOptionCard
-          title={i18n.t('onboarding.recentOption')}
-          subtitle={i18n.t('onboarding.recentOptionBody')}
-          selected={elapsed.totalMs <= 60 * 60 * 1000}
-          onPress={() => setPreset(0)}
-        />
-        <OnboardingOptionCard
-          title={i18n.t('onboarding.todayOption')}
-          subtitle={i18n.t('onboarding.todayOptionBody')}
-          selected={elapsed.totalMs > 60 * 60 * 1000 && elapsed.days === 0}
-          onPress={() => setPreset(6)}
-        />
-        <OnboardingOptionCard
-          title={i18n.t('onboarding.yesterdayOption')}
-          subtitle={i18n.t('onboarding.yesterdayOptionBody')}
-          selected={elapsed.days === 1}
-          onPress={() => setPreset(24)}
-        />
-        <OnboardingOptionCard
-          title={i18n.t('onboarding.customDateOption')}
-          subtitle={selectedDate.toLocaleString('fr-CH')}
-          selected={elapsed.days > 1}
+        <Pressable
           onPress={() => {
             if (Platform.OS === 'android') {
               openAndroidDateTimePicker();
@@ -102,7 +81,34 @@ export default function LastCigaretteScreen() {
             }
             setShowIosPicker((value) => !value);
           }}
-        />
+          style={{
+            borderRadius: 13,
+            borderWidth: 1,
+            borderColor: colors.bgCardBorder,
+            backgroundColor: colors.bgCard,
+            paddingHorizontal: 14,
+            paddingVertical: 16,
+          }}
+        >
+          <Text style={[FONTS.bold, { color: colors.textPrimary, fontSize: 13 }]}>
+            {selectedDate.toLocaleString('fr-CH')}
+          </Text>
+        </Pressable>
+
+        <View
+          style={{
+            borderRadius: 10,
+            borderWidth: 1,
+            borderColor: colors.accentBorder,
+            backgroundColor: colors.accentBg,
+            paddingHorizontal: 12,
+            paddingVertical: 12,
+          }}
+        >
+          <Text style={[FONTS.bold, { color: colors.accent, fontSize: 12 }]}>
+            {i18n.t('onboarding.elapsedSince')} {elapsed.days}j {elapsed.hours}h {elapsed.minutes}min
+          </Text>
+        </View>
 
         {Platform.OS === 'ios' && showIosPicker ? (
           <View
@@ -110,7 +116,7 @@ export default function LastCigaretteScreen() {
               borderRadius: 14,
               borderWidth: 1,
               borderColor: colors.bgCardBorder,
-              backgroundColor: colors.bgSurface,
+              backgroundColor: colors.bgCard,
               paddingHorizontal: 8,
               paddingVertical: 8,
             }}
@@ -124,9 +130,32 @@ export default function LastCigaretteScreen() {
           </View>
         ) : null}
 
-        <Text style={[FONTS.regular, { color: colors.textMuted, fontSize: 12, marginTop: 4 }]}>
-          {i18n.t('onboarding.elapsedSince')} {elapsed.days}j {elapsed.hours}h {elapsed.minutes}min
-        </Text>
+        <Pressable onPress={() => updateOnboardingDraft({ lastCigaretteAt: new Date().toISOString() })}>
+          <Text style={[FONTS.regular, { color: colors.textMuted, fontSize: 11 }]}>
+            {i18n.t('onboarding.dontRemember')}
+          </Text>
+        </Pressable>
+
+        <View style={{ gap: SPACING.sm }}>
+          <OnboardingOptionCard
+            title={i18n.t('onboarding.recentOption')}
+            subtitle={i18n.t('onboarding.recentOptionBody')}
+            selected={elapsed.totalMs <= 60 * 60 * 1000}
+            onPress={() => setPreset(0)}
+          />
+          <OnboardingOptionCard
+            title={i18n.t('onboarding.todayOption')}
+            subtitle={i18n.t('onboarding.todayOptionBody')}
+            selected={elapsed.totalMs > 60 * 60 * 1000 && elapsed.days === 0}
+            onPress={() => setPreset(6)}
+          />
+          <OnboardingOptionCard
+            title={i18n.t('onboarding.yesterdayOption')}
+            subtitle={i18n.t('onboarding.yesterdayOptionBody')}
+            selected={elapsed.days === 1}
+            onPress={() => setPreset(24)}
+          />
+        </View>
       </View>
     </OnboardingScaffold>
   );

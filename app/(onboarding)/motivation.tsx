@@ -16,18 +16,18 @@ export default function MotivationScreen() {
   const updateOnboardingDraft = useUserStore((state) => state.updateOnboardingDraft);
   const motivations = onboardingDraft?.motivations ?? profile?.motivations ?? [];
   const options = [
-    i18n.t('onboarding.motivationHealth'),
     i18n.t('onboarding.motivationMoney'),
-    i18n.t('onboarding.motivationSport'),
+    i18n.t('onboarding.motivationHealth'),
     i18n.t('onboarding.motivationFamily'),
-    i18n.t('onboarding.motivationFreedom'),
-    i18n.t('onboarding.motivationOther'),
+    i18n.t('onboarding.motivationProof'),
+    i18n.t('onboarding.motivationSport'),
+    i18n.t('onboarding.motivationEnvironment'),
   ];
 
   return (
     <OnboardingScaffold
-      step={4}
-      total={4}
+      step={5}
+      total={5}
       title={i18n.t('onboarding.motivationTitle')}
       subtitle={i18n.t('onboarding.motivationBody')}
       onBack={() => router.back()}
@@ -35,7 +35,7 @@ export default function MotivationScreen() {
         <>
           <Button label={i18n.t('onboarding.finishCta')} onPress={() => router.push('/notifications')} />
           <Pressable onPress={() => router.push('/notifications')}>
-            <Text style={[FONTS.regular, { color: colors.textMuted, fontSize: 13, textAlign: 'center' }]}>
+            <Text style={[FONTS.regular, { color: colors.textMuted, fontSize: 11, textAlign: 'center' }]}>
               {i18n.t('onboarding.skipMotivation')}
             </Text>
           </Pressable>
@@ -61,8 +61,8 @@ export default function MotivationScreen() {
                 minHeight: 54,
                 borderRadius: RADII.md,
                 borderWidth: 1,
-                borderColor: active ? colors.accent : colors.bgCardBorder,
-                backgroundColor: active ? colors.accent : isDark ? colors.bgSurface : colors.bgSurface,
+                borderColor: active ? colors.borderSelected : colors.bgCardBorder,
+                backgroundColor: active ? colors.accent : colors.bgCard,
                 alignItems: 'center',
                 justifyContent: 'center',
                 paddingHorizontal: 10,
@@ -72,7 +72,7 @@ export default function MotivationScreen() {
                 style={[
                   FONTS.bold,
                   {
-                    color: active ? colors.bgDeep : colors.textPrimary,
+                    color: active ? (isDark ? colors.bgDeep : '#FFFFFF') : colors.textPrimary,
                     fontSize: 13,
                     textAlign: 'center',
                   },

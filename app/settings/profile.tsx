@@ -1,13 +1,14 @@
-import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import Slider from '@react-native-community/slider';
 import { useRouter } from 'expo-router';
+import { AlertCircle, Minus, Plus } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { Alert, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { SettingsScreenHeader } from '@/components/ui/SettingsScreenHeader';
+import { getProductConfig, PRODUCT_TYPES, type ProductType } from '@/constants/productConfig';
 import { FONTS, RADII, SPACING } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { i18n } from '@/services/i18n';
@@ -66,10 +67,12 @@ export default function SettingsProfileScreen() {
   const { colors, fixed } = useTheme();
   const profile = useUserStore((state) => state.profile);
   const setProfile = useUserStore((state) => state.setProfile);
+  const [productType, setProductType] = useState<ProductType>(profile?.productType ?? 'cigarette');
   const [date, setDate] = useState<Date>(profile ? new Date(profile.lastCigaretteAt) : new Date());
   const [cigarettesPerDay, setCigarettesPerDay] = useState(profile?.cigarettesPerDay ?? 10);
   const [packPrice, setPackPrice] = useState(String(profile?.packPrice ?? 10.5));
   const [showIosPicker, setShowIosPicker] = useState(false);
+  const productConfig = getProductConfig(productType);
 
   const formatDate = (value: Date) =>
     value.toLocaleString('fr-CH', {
@@ -125,6 +128,7 @@ export default function SettingsProfileScreen() {
 
           setProfile({
             ...profile,
+            productType,
             lastCigaretteAt: date.toISOString(),
             cigarettesPerDay: Math.round(cigarettesPerDay),
             packPrice: Number(packPrice.replace(',', '.')) || 0,
@@ -159,7 +163,7 @@ export default function SettingsProfileScreen() {
             gap: 10,
           }}
         >
-          <Ionicons name="alert-circle-outline" size={16} color={fixed.sos} style={{ marginTop: 1 }} />
+          <AlertCircle size={16} color={fixed.sos} strokeWidth={1.5} style={{ marginTop: 1 }} />
           <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 12, flex: 1, lineHeight: 18 }]}>
             {i18n.t('settingsScreen.profileWarning')}
           </Text>
@@ -167,6 +171,47 @@ export default function SettingsProfileScreen() {
       </View>
 
       <Surface style={{ gap: 14 }}>
+        <View style={{ gap: 8 }}>
+          <Label>{i18n.t('settingsScreen.productType')}</Label>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {PRODUCT_TYPES.map((item) => {
+              const selected = productType === item;
+
+              return (
+                <Pressable
+                  key={item}
+                  onPress={() => {
+                    const nextConfig = getProductConfig(item);
+                    setProductType(item);
+                    setCigarettesPerDay(nextConfig.defaultQuantity);
+                    setPackPrice(String(nextConfig.defaultPrice));
+                  }}
+                  style={{
+                    width: '31%',
+                    borderRadius: RADII.md,
+                    borderWidth: 1,
+                    borderColor: selected ? colors.accent : colors.bgCardBorder,
+                    backgroundColor: selected ? colors.accentBg : colors.bgPrimary,
+                    paddingHorizontal: 12,
+                    paddingVertical: 10,
+                    gap: 4,
+                  }}
+                >
+                  <Text style={{ fontSize: 18 }}>{getProductConfig(item).emoji}</Text>
+                  <Text
+                    style={[
+                      selected ? FONTS.bold : FONTS.regular,
+                      { color: selected ? colors.textPrimary : colors.textSecondary, fontSize: 11 },
+                    ]}
+                  >
+                    {i18n.t(`products.${item}.title`)}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+
         <View style={{ gap: 8 }}>
           <Label>{i18n.t('onboarding.lastCigarette')}</Label>
           {Platform.OS === 'android' ? (
@@ -214,14 +259,14 @@ export default function SettingsProfileScreen() {
 
         <View style={{ gap: 8 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Label>{i18n.t('onboarding.cigarettesPerDay')}</Label>
+            <Label>{i18n.t(`products.${productType}.quantityTitle`)}</Label>
             <Text style={[FONTS.black, { color: colors.accent, fontSize: 14 }]}>
-              {Math.round(cigarettesPerDay)} {i18n.t('onboarding.cigarettesUnit')}
+              {Math.round(cigarettesPerDay)} {i18n.t(`products.${productType}.unitShort`)}
             </Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <Pressable
-              onPress={() => setCigarettesPerDay((value) => Math.max(1, value - 1))}
+              onPress={() => setCigarettesPerDay((value) => Math.max(productConfig.min, value - 1))}
               style={{
                 height: 38,
                 width: 38,
@@ -233,12 +278,12 @@ export default function SettingsProfileScreen() {
                 backgroundColor: colors.bgPrimary,
               }}
             >
-              <Ionicons name="remove" size={16} color={colors.textPrimary} />
+              <Minus size={16} color={colors.textPrimary} strokeWidth={1.5} />
             </Pressable>
             <View style={{ flex: 1 }}>
               <Slider
-                minimumValue={1}
-                maximumValue={60}
+                minimumValue={productConfig.min}
+                maximumValue={productConfig.max}
                 step={1}
                 minimumTrackTintColor={fixed.purple}
                 maximumTrackTintColor={colors.dividerStrong}
@@ -247,7 +292,7 @@ export default function SettingsProfileScreen() {
               />
             </View>
             <Pressable
-              onPress={() => setCigarettesPerDay((value) => Math.min(60, value + 1))}
+              onPress={() => setCigarettesPerDay((value) => Math.min(productConfig.max, value + 1))}
               style={{
                 height: 38,
                 width: 38,
@@ -259,13 +304,13 @@ export default function SettingsProfileScreen() {
                 backgroundColor: colors.bgPrimary,
               }}
             >
-              <Ionicons name="add" size={16} color={colors.textPrimary} />
+              <Plus size={16} color={colors.textPrimary} strokeWidth={1.5} />
             </Pressable>
           </View>
         </View>
 
         <View style={{ gap: 8 }}>
-          <Label>{i18n.t('onboarding.packPrice')}</Label>
+          <Label>{i18n.t(`products.${productType}.priceLabel`)}</Label>
           <View
             style={{
               borderRadius: RADII.md,
@@ -284,7 +329,7 @@ export default function SettingsProfileScreen() {
               keyboardType="decimal-pad"
               value={packPrice}
               onChangeText={setPackPrice}
-              placeholder="11,50"
+              placeholder={productConfig.defaultPrice.toFixed(2).replace('.', ',')}
               placeholderTextColor={colors.textMuted}
               style={[
                 FONTS.bold,

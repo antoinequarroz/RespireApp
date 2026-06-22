@@ -1,9 +1,9 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { Check, Sparkles, X } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
-import { AppLogo } from '@/components/ui/AppLogo';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { FONTS, RADII, SPACING } from '@/constants/theme';
@@ -46,22 +46,23 @@ export default function PaywallScreen() {
     offerings.length > 0
       ? offerings
       : [
-          {
-            identifier: '$rc_monthly',
-            title: 'Mensuel',
-            priceString: i18n.t('paywall.monthly'),
-          },
-          {
-            identifier: '$rc_annual',
-            title: 'Annuel',
-            priceString: i18n.t('paywall.yearly'),
-          },
+          { identifier: '$rc_monthly', title: 'Mensuel', priceString: i18n.t('paywall.monthly') },
+          { identifier: '$rc_annual', title: 'Annuel', priceString: i18n.t('paywall.yearly') },
         ];
 
   const selectedPackage =
     packages.find((item) => item.identifier === selectedIdentifier) ??
     packages.find((item) => item.identifier === '$rc_annual') ??
     packages[0];
+
+  const compareRows = [
+    ['Compteur', true, true],
+    ['Economies', true, true],
+    ['SOS', true, true],
+    ['Stats avancees', false, true],
+    ['Journal', false, true],
+    ['Widget', false, true],
+  ];
 
   const buy = async (identifier: string) => {
     setBusy(true);
@@ -81,21 +82,6 @@ export default function PaywallScreen() {
     }
   };
 
-  const premiumFeatures = [
-    'Journal emotionnel',
-    'Stats avancees & widget',
-    'Heatmap tendances 30j',
-  ];
-
-  const compareRows = [
-    ['Compteur', 'Inclus', 'Inclus'],
-    ['Economies', 'Inclus', 'Inclus'],
-    ['Mode SOS', 'Inclus', 'Inclus'],
-    ['Journal', 'Limite', 'Inclus'],
-    ['Stats avancees', 'Simple', 'Avance'],
-    ['Widget', 'Limite', 'Inclus'],
-  ];
-
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.bgPrimary }}
@@ -103,8 +89,7 @@ export default function PaywallScreen() {
     >
       <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <View style={{ flex: 1, gap: 6 }}>
-          <AppLogo size="header" />
-          <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 18 }]}>
+          <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 22 }]}>
             {i18n.t('paywall.brandTitle')}
           </Text>
           <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 13 }]}>
@@ -118,27 +103,40 @@ export default function PaywallScreen() {
             width: 30,
             height: 30,
             borderRadius: 10,
-            backgroundColor: colors.bgSurface,
+            backgroundColor: colors.bgCard,
             alignItems: 'center',
             justifyContent: 'center',
             marginLeft: 12,
           }}
         >
-          <Ionicons name="close" size={16} color={colors.textSecondary} />
+          <X size={16} color={colors.textSecondary} strokeWidth={2} />
         </Pressable>
       </View>
 
-      <Card style={{ gap: 12, backgroundColor: colors.bgSurface }}>
-        <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 18 }]}>
-          {i18n.t('paywall.title')}
-        </Text>
-        <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 13 }]}>
-          {i18n.t('paywall.compareBody')}
-        </Text>
+      <Animated.View entering={FadeInDown.duration(320)}>
+        <Card style={{ gap: 10, backgroundColor: colors.accentBg, borderColor: colors.accentBorder, borderWidth: 1 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Sparkles color={colors.accent} size={16} strokeWidth={1.5} />
+            <Text style={[FONTS.bold, { color: colors.accent, fontSize: 10, textTransform: 'uppercase', letterSpacing: 1.1 }]}>
+              {i18n.t('paywall.whyPremium')}
+            </Text>
+          </View>
+          <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 18 }]}>
+            {i18n.t('paywall.heroTitle')}
+          </Text>
+          <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 12 }]}>
+            {i18n.t('paywall.heroBody')}
+          </Text>
+        </Card>
+      </Animated.View>
 
+      <Card style={{ gap: 10 }}>
+        <Text style={[FONTS.bold, { color: colors.textPrimary, fontSize: 12 }]}>
+          {i18n.t('paywall.compareTitle')}
+        </Text>
         {compareRows.map(([label, free, premium], index) => (
           <View
-            key={label}
+            key={String(label)}
             style={{
               flexDirection: 'row',
               alignItems: 'center',
@@ -148,136 +146,112 @@ export default function PaywallScreen() {
             }}
           >
             <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 12, flex: 1 }]}>{label}</Text>
-            <Text style={[FONTS.bold, { color: colors.textMuted, fontSize: 10, width: 58, textAlign: 'center' }]}>
-              {free}
-            </Text>
-            <Text style={[FONTS.black, { color: colors.accent, fontSize: 10, width: 76, textAlign: 'center' }]}>
-              {premium}
-            </Text>
+            <View style={{ width: 58, alignItems: 'center' }}>
+              {free ? <Check size={14} color={colors.textMuted} strokeWidth={2} /> : <Text style={{ color: colors.textMuted }}>—</Text>}
+            </View>
+            <View style={{ width: 76, alignItems: 'center' }}>
+              {premium ? <Check size={14} color={colors.accent} strokeWidth={2} /> : <Text style={{ color: colors.textMuted }}>—</Text>}
+            </View>
           </View>
         ))}
       </Card>
 
-      {packages.map((item) => {
+      {packages.map((item, index) => {
         const annual = item.identifier === '$rc_annual';
         const selected = (selectedIdentifier ?? selectedPackage?.identifier) === item.identifier;
 
         return (
-          <Pressable key={item.identifier} onPress={() => setSelectedIdentifier(item.identifier)}>
-            <Card
-              style={{
-                position: 'relative',
-                backgroundColor: annual ? colors.accentBg : colors.bgSurface,
-                borderColor: annual ? colors.accent : colors.bgCardBorder,
-                borderWidth: annual ? 1 : 0.5,
-                paddingTop: annual ? 20 : 16,
-              }}
-            >
-              {annual ? (
-                <View
-                  style={{
-                    position: 'absolute',
-                    top: -6,
-                    right: 10,
-                    borderRadius: RADII.full,
-                    backgroundColor: fixed.purple,
-                    paddingHorizontal: 8,
-                    paddingVertical: 3,
-                  }}
-                >
-                  <Text style={[FONTS.bold, { color: '#FFFFFF', fontSize: 8 }]}>
-                    {i18n.t('paywall.recommended')}
-                  </Text>
-                </View>
-              ) : null}
-
-              <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                <View style={{ flex: 1 }}>
-                  <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 18 }]}>{item.title}</Text>
-                  <Text
-                    style={[
-                      FONTS.black,
-                      { color: annual ? colors.accent : colors.textPrimary, fontSize: 22, marginTop: 6 },
-                    ]}
+          <Animated.View key={item.identifier} entering={FadeInDown.delay(140 + index * 80).duration(300)}>
+            <Pressable onPress={() => setSelectedIdentifier(item.identifier)}>
+              <Card
+                style={{
+                  position: 'relative',
+                  backgroundColor: annual ? 'rgba(124,58,237,0.10)' : colors.bgCard,
+                  borderColor: annual ? colors.accent : colors.bgCardBorder,
+                  borderWidth: annual ? 1 : 0.5,
+                  paddingTop: annual ? 20 : 16,
+                }}
+              >
+                {annual ? (
+                  <View
+                    style={{
+                      position: 'absolute',
+                      top: -8,
+                      right: 6,
+                      borderRadius: RADII.full,
+                      backgroundColor: fixed.purple,
+                      paddingHorizontal: 8,
+                      paddingVertical: 3,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 4,
+                    }}
                   >
-                    {item.priceString}
-                  </Text>
-                  <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 13, marginTop: 8 }]}>
-                    {annual ? i18n.t('paywall.yearlyBody') : i18n.t('paywall.monthlyPitch')}
-                  </Text>
-                  {annual ? (
-                    <Text style={[FONTS.bold, { color: colors.accent, fontSize: 11, marginTop: 8 }]}>
-                      {i18n.t('paywall.yearlyPerMonth')}
+                    <Sparkles color="#FFFFFF" size={8} strokeWidth={1.5} />
+                    <Text style={[FONTS.bold, { color: '#FFFFFF', fontSize: 8 }]}>
+                      {i18n.t('paywall.recommended').toUpperCase()}
                     </Text>
-                  ) : null}
-                </View>
+                  </View>
+                ) : null}
 
-                <View
-                  style={{
-                    marginLeft: 12,
-                    width: 18,
-                    height: 18,
-                    borderRadius: RADII.full,
-                    borderWidth: 1,
-                    borderColor: selected ? colors.accent : colors.accentBorder,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginTop: 4,
-                  }}
-                >
-                  {selected ? (
-                    <View
-                      style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: RADII.full,
-                        backgroundColor: colors.accent,
-                      }}
-                    />
-                  ) : null}
+                <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 18 }]}>{item.title}</Text>
+                    <Text
+                      style={[
+                        FONTS.black,
+                        { color: annual ? colors.accent : colors.textPrimary, fontSize: 22, marginTop: 6 },
+                      ]}
+                    >
+                      {item.priceString}
+                    </Text>
+                    <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 11, marginTop: 8 }]}>
+                      {annual ? i18n.t('paywall.yearlyPerMonth') : i18n.t('paywall.monthlyPitch')}
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      marginLeft: 12,
+                      width: 18,
+                      height: 18,
+                      borderRadius: RADII.full,
+                      borderWidth: 1,
+                      borderColor: selected ? colors.accent : colors.accentBorder,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginTop: 4,
+                    }}
+                  >
+                    {selected ? (
+                      <View
+                        style={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: RADII.full,
+                          backgroundColor: colors.accent,
+                        }}
+                      />
+                    ) : null}
+                  </View>
                 </View>
-              </View>
-            </Card>
-          </Pressable>
+              </Card>
+            </Pressable>
+          </Animated.View>
         );
       })}
-
-      <Card
-        style={{
-          backgroundColor: colors.accentBg,
-          borderColor: colors.accentBorder,
-          borderWidth: 1,
-          gap: 8,
-        }}
-      >
-        <Text style={[FONTS.bold, { color: colors.accent, fontSize: 10, letterSpacing: 0.8 }]}>AVEC PREMIUM</Text>
-        {premiumFeatures.map((item) => (
-          <View key={item} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <View
-              style={{
-                width: 14,
-                height: 14,
-                borderRadius: 7,
-                backgroundColor: colors.accentBg,
-                borderWidth: 1,
-                borderColor: colors.accentBorder,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Text style={[FONTS.bold, { color: colors.accent, fontSize: 7 }]}>✓</Text>
-            </View>
-            <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 11 }]}>{item}</Text>
-          </View>
-        ))}
-      </Card>
 
       <Button
         label={busy ? i18n.t('common.loading') : i18n.t('paywall.ctaSelected', { plan: selectedPackage?.title ?? '' })}
         onPress={() => selectedPackage && buy(selectedPackage.identifier)}
       />
 
-      <Pressable onPress={() => restoreRevenueCatPurchases().then((info) => setPremiumStatus(isPremiumCustomer(info))).catch(() => undefined)}>
+      <Pressable
+        onPress={() =>
+          restoreRevenueCatPurchases()
+            .then((info) => setPremiumStatus(isPremiumCustomer(info)))
+            .catch(() => undefined)
+        }
+      >
         <Text style={[FONTS.regular, { color: colors.textMuted, fontSize: 11, textAlign: 'center' }]}>
           {i18n.t('paywall.restore')}
         </Text>

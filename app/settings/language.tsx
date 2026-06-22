@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { CheckCircle2 } from 'lucide-react-native';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { SettingsScreenHeader } from '@/components/ui/SettingsScreenHeader';
@@ -43,7 +43,7 @@ function LanguageCard({
           </Text>
           <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 11 }]}>{subtitle}</Text>
         </View>
-        {active ? <Ionicons name="checkmark-circle" size={18} color={colors.accent} /> : null}
+        {active ? <CheckCircle2 size={18} color={colors.accent} strokeWidth={1.5} /> : null}
       </View>
     </Pressable>
   );

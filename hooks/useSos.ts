@@ -18,8 +18,10 @@ export function useSos() {
   };
 
   const completeSession = () => {
-    setSessionDone(true);
-    incrementCravingsHandled();
+    if (!sessionDone) {
+      incrementCravingsHandled();
+      setSessionDone(true);
+    }
   };
 
   return {

@@ -1,6 +1,8 @@
 export const FIXED = {
   purple: '#7C3AED',
   sos: '#FF4D6D',
+  sosBg: '#08061A',
+  milestoneBg: '#0C0A1E',
 } as const;
 
 export const DARK = {
@@ -8,6 +10,7 @@ export const DARK = {
   bgDeep: '#0C0A1E',
   bgSos: '#08061A',
   bgSurface: '#1E1B30',
+  cardSelected: '#231B4C',
   bgCard: 'rgba(255, 255, 255, 0.04)',
   bgCardBorder: 'rgba(255, 255, 255, 0.06)',
   accent: '#A78BFA',
@@ -25,13 +28,16 @@ export const DARK = {
   navBorder: 'rgba(255, 255, 255, 0.05)',
   divider: 'rgba(255, 255, 255, 0.05)',
   dividerStrong: 'rgba(255, 255, 255, 0.10)',
+  borderSelected: '#A78BFA',
+  homeIndicator: 'rgba(248,247,255,0.20)',
 } as const;
 
 export const LIGHT = {
   bgPrimary: '#F8F7FF',
   bgDeep: '#EDE9FC',
-  bgSos: '#F0EEFF',
+  bgSos: '#08061A',
   bgSurface: '#FFFFFF',
+  cardSelected: '#EDE9FF',
   bgCard: 'rgba(124, 58, 237, 0.05)',
   bgCardBorder: 'rgba(124, 58, 237, 0.08)',
   accent: '#7C3AED',
@@ -49,6 +55,8 @@ export const LIGHT = {
   navBorder: 'rgba(124, 58, 237, 0.10)',
   divider: 'rgba(15, 12, 30, 0.06)',
   dividerStrong: 'rgba(15, 12, 30, 0.12)',
+  borderSelected: '#7C3AED',
+  homeIndicator: 'rgba(18,15,30,0.18)',
 } as const;
 
 export const FONTS = {

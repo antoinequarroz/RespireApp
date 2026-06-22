@@ -4,6 +4,7 @@ import { ScrollView, Text, View } from 'react-native';
 import { AppLogo } from '@/components/ui/AppLogo';
 import { Card } from '@/components/ui/Card';
 import { SettingsNavItem } from '@/components/ui/SettingsNavItem';
+import { getProductConfig } from '@/constants/productConfig';
 import { FONTS, SPACING } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { i18n } from '@/services/i18n';
@@ -20,9 +21,15 @@ export default function SettingsScreen() {
   const isPremium = usePremiumStore((state) => state.isPremium);
 
   const pushSettings = (path: string) => router.push(path as Href);
+  const productType = profile?.productType ?? 'cigarette';
+  const productConfig = getProductConfig(productType);
+  const cadenceLabel =
+    productConfig.quantityCadence === 'day'
+      ? i18n.t('settingsScreen.perDay')
+      : i18n.t('settingsScreen.perWeek');
 
   const profileSummary = profile
-    ? `${profile.cigarettesPerDay} / jour · ${profile.packPrice} EUR`
+    ? `${i18n.t(`products.${productType}.title`)} · ${profile.cigarettesPerDay} ${cadenceLabel} · ${profile.packPrice} EUR`
     : i18n.t('settingsScreen.profileEmpty');
 
   const themeSummary =
