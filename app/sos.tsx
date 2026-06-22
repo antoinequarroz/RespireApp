@@ -1,5 +1,6 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { BreathingExercise } from '@/components/domain/BreathingExercise';
 import { DistractionGame } from '@/components/domain/DistractionGame';
@@ -18,16 +19,9 @@ export default function SosScreen() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.bgSos }}
-      contentContainerStyle={{ padding: SPACING.lg, gap: SPACING.lg, paddingBottom: SPACING.xxl }}
+      contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 52, paddingBottom: SPACING.xxl, gap: 16 }}
     >
-      <View
-        style={{
-          paddingTop: SPACING.lg,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <Text
           style={[
             FONTS.bold,
@@ -41,11 +35,29 @@ export default function SosScreen() {
         >
           {i18n.t('common.sos')}
         </Text>
-        <Button
-          label="×"
-          variant="ghost"
-          style={{ minHeight: 36, width: 36, paddingHorizontal: 0, paddingVertical: 0 }}
+        <Pressable
           onPress={() => router.back()}
+          style={{
+            width: 30,
+            height: 30,
+            borderRadius: 10,
+            backgroundColor: colors.bgCard,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Ionicons name="close" size={16} color={colors.textSecondary} />
+        </Pressable>
+      </View>
+
+      <View style={{ alignItems: 'center', marginTop: 8, marginBottom: 4 }}>
+        <View
+          style={{
+            width: 28,
+            height: 3,
+            borderRadius: RADII.full,
+            backgroundColor: colors.dividerStrong,
+          }}
         />
       </View>
 
@@ -61,7 +73,7 @@ export default function SosScreen() {
       <View
         style={{
           flexDirection: 'row',
-          gap: SPACING.sm,
+          gap: 8,
           borderRadius: RADII.lg,
           borderWidth: 0.5,
           borderColor: colors.accentBorder,
@@ -76,18 +88,22 @@ export default function SosScreen() {
           const active = mode === item.key;
 
           return (
-            <View key={item.key} style={{ flex: 1 }}>
-              <Button
-                label={item.label}
-                variant={active ? 'primary' : 'ghost'}
-                style={
-                  active
-                    ? { flex: 1 }
-                    : { flex: 1, backgroundColor: 'transparent', borderWidth: 1, borderColor: 'transparent' }
-                }
-                onPress={() => setMode(item.key as 'breathing' | 'game')}
-              />
-            </View>
+            <Pressable
+              key={item.key}
+              onPress={() => setMode(item.key as 'breathing' | 'game')}
+              style={{
+                flex: 1,
+                minHeight: 42,
+                borderRadius: RADII.md,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: active ? fixed.purple : 'transparent',
+              }}
+            >
+              <Text style={[active ? FONTS.bold : FONTS.regular, { color: active ? '#FFFFFF' : colors.textSecondary, fontSize: 12 }]}>
+                {item.label}
+              </Text>
+            </Pressable>
           );
         })}
       </View>
@@ -123,16 +139,14 @@ export default function SosScreen() {
           </Text>
           <Button label={i18n.t('sosScreen.finishExercise')} onPress={() => router.back()} />
         </Card>
-      ) : null}
-
-      {!sessionDone ? (
+      ) : (
         <Text
           style={[FONTS.regular, { color: colors.textMuted, fontSize: 11, textAlign: 'center' }]}
           onPress={() => router.back()}
         >
           {i18n.t('sosScreen.finishExercise')}
         </Text>
-      ) : null}
+      )}
     </ScrollView>
   );
 }

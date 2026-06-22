@@ -44,9 +44,6 @@ export default function StatsScreen() {
     if (range === '7d') {
       return savings.series.slice(-7);
     }
-    if (range === '30d') {
-      return savings.series;
-    }
     return savings.series;
   }, [range, savings.series]);
 
@@ -70,9 +67,9 @@ export default function StatsScreen() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.bgPrimary }}
-      contentContainerStyle={{ padding: SPACING.lg, gap: SPACING.lg, paddingBottom: SPACING.xxl }}
+      contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 52, paddingBottom: SPACING.xxl, gap: 16 }}
     >
-      <View style={{ gap: SPACING.sm, paddingTop: SPACING.lg }}>
+      <View style={{ gap: 6 }}>
         <AppLogo size="header" />
         <Text style={[FONTS.black, { fontSize: 18, color: colors.textPrimary }]}>
           {i18n.t('statsScreen.title')}
@@ -82,7 +79,7 @@ export default function StatsScreen() {
         </Text>
       </View>
 
-      <Card style={{ gap: SPACING.md }}>
+      <Card style={{ gap: 14, backgroundColor: colors.bgSurface }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <View>
             <Text
@@ -149,8 +146,8 @@ export default function StatsScreen() {
         </Svg>
       </Card>
 
-      <View style={{ flexDirection: 'row', gap: SPACING.md }}>
-        <Card style={{ flex: 1, gap: 6 }}>
+      <View style={{ flexDirection: 'row', gap: 12 }}>
+        <Card style={{ flex: 1, gap: 6, backgroundColor: colors.bgSurface }}>
           <Text
             style={[
               FONTS.bold,
@@ -175,6 +172,7 @@ export default function StatsScreen() {
             flex: 1,
             backgroundColor: colors.emeraldBg,
             borderColor: colors.emeraldBorder,
+            borderWidth: 1,
             gap: 6,
           }}
         >
@@ -199,7 +197,7 @@ export default function StatsScreen() {
         </Card>
       </View>
 
-      <Card style={{ gap: SPACING.md }}>
+      <Card style={{ gap: SPACING.md, backgroundColor: colors.bgSurface }}>
         <View style={{ gap: 4 }}>
           <Text style={[FONTS.black, { fontSize: 18, color: colors.textPrimary }]}>
             {i18n.t('statsScreen.healthTimeline')}
@@ -232,7 +230,7 @@ export default function StatsScreen() {
                   style={{
                     width: 18,
                     height: 18,
-                    borderRadius: 999,
+                    borderRadius: RADII.full,
                     borderWidth: 1,
                     borderColor: item.reached ? colors.emeraldBorder : colors.accentBorder,
                     backgroundColor: item.reached ? colors.emeraldBg : 'transparent',
@@ -253,7 +251,7 @@ export default function StatsScreen() {
         </View>
       </Card>
 
-      <Card style={{ gap: SPACING.md }}>
+      <Card style={{ gap: SPACING.md, backgroundColor: colors.bgSurface }}>
         <View style={{ gap: 4 }}>
           <Text style={[FONTS.black, { fontSize: 18, color: colors.textPrimary }]}>
             {i18n.t('statsScreen.badgesTitle')}

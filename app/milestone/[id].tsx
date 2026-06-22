@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Share, Text, View } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -9,9 +9,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import { AppLogo } from '@/components/ui/AppLogo';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
 import { MILESTONES } from '@/constants/milestones';
 import { FONTS, RADII, SPACING } from '@/constants/theme';
 import { useSavings } from '@/hooks/useSavings';
@@ -53,140 +51,110 @@ export default function MilestoneScreen() {
         alignItems: 'center',
       }}
     >
-      <View style={{ width: '100%', alignItems: 'center' }}>
-        <AppLogo size="header" />
-        <Text style={{ fontSize: 22, marginTop: 16, marginBottom: 18 }}>🎉 ⭐ 🎊</Text>
+      <Text style={{ fontSize: 22, marginTop: 8, marginBottom: 18 }}>🎉 ⭐ 🎊</Text>
 
-        <Animated.View
-          style={[
-            animatedBadgeStyle,
-            {
-              width: 80,
-              height: 80,
-              borderRadius: 999,
-              borderWidth: 2,
-              borderColor: 'rgba(167,139,250,0.30)',
-              alignItems: 'center',
-              justifyContent: 'center',
-            },
-          ]}
+      <Animated.View
+        style={[
+          animatedBadgeStyle,
+          {
+            width: 80,
+            height: 80,
+            borderRadius: RADII.full,
+            borderWidth: 2,
+            borderColor: 'rgba(167,139,250,0.30)',
+            alignItems: 'center',
+            justifyContent: 'center',
+          },
+        ]}
+      >
+        <View
+          style={{
+            width: 62,
+            height: 62,
+            borderRadius: RADII.full,
+            borderWidth: 2,
+            borderColor: colors.accent,
+            backgroundColor: 'rgba(124,58,237,0.20)',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
         >
+          <Text style={{ fontSize: 28 }}>🏆</Text>
+        </View>
+      </Animated.View>
+
+      <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 20, marginTop: 22 }]}>
+        {milestone.labelFr} sans fumer !
+      </Text>
+      <Text
+        style={[
+          FONTS.regular,
+          {
+            color: colors.textSecondary,
+            fontSize: 10,
+            textAlign: 'center',
+            marginTop: 8,
+            maxWidth: 260,
+          },
+        ]}
+      >
+        {i18n.t('milestone.subtitle')}
+      </Text>
+
+      <View style={{ flexDirection: 'row', gap: 10, marginTop: 24, width: '100%' }}>
+        {stats.map((item) => (
           <View
+            key={item.label}
             style={{
-              width: 62,
-              height: 62,
-              borderRadius: 999,
-              borderWidth: 2,
-              borderColor: colors.accent,
-              backgroundColor: 'rgba(124,58,237,0.20)',
+              flex: 1,
+              borderRadius: 10,
+              backgroundColor: colors.bgCard,
+              borderWidth: 0.5,
+              borderColor: colors.bgCardBorder,
+              paddingHorizontal: 10,
+              paddingVertical: 12,
               alignItems: 'center',
               justifyContent: 'center',
+              minHeight: 76,
             }}
           >
-            <Text style={{ fontSize: 28 }}>🏆</Text>
-          </View>
-        </Animated.View>
-
-        <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 20, marginTop: 22 }]}>
-          {milestone.labelFr} !
-        </Text>
-        <Text
-          style={[
-            FONTS.regular,
-            {
-              color: colors.textSecondary,
-              fontSize: 10,
-              textAlign: 'center',
-              marginTop: 8,
-              maxWidth: 260,
-            },
-          ]}
-        >
-          {i18n.t('milestone.subtitle')}
-        </Text>
-
-        <Card
-          style={{
-            width: '100%',
-            marginTop: 24,
-            backgroundColor: colors.accentBg,
-            borderColor: colors.accentBorder,
-            borderWidth: 1,
-            gap: 10,
-          }}
-        >
-          <Text
-            style={[
-              FONTS.bold,
-              {
-                color: colors.accent,
-                fontSize: 8,
-                letterSpacing: 1.5,
-                textTransform: 'uppercase',
-              },
-            ]}
-          >
-            {i18n.t('milestone.shareLabel')}
-          </Text>
-          <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 18 }]}>
-            {i18n.t('milestone.shareTitle')}
-          </Text>
-          <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 13 }]}>
-            {i18n.t('milestone.shareBody')}
-          </Text>
-        </Card>
-
-        <View style={{ flexDirection: 'row', gap: 10, marginTop: 18, width: '100%' }}>
-          {stats.map((item) => (
-            <View
-              key={item.label}
-              style={{
-                flex: 1,
-                borderRadius: 10,
-                backgroundColor: colors.bgCard,
-                borderWidth: 0.5,
-                borderColor: colors.bgCardBorder,
-                paddingHorizontal: 10,
-                paddingVertical: 12,
-                alignItems: 'center',
-                justifyContent: 'center',
-                minHeight: 76,
-              }}
+            <Text
+              style={[FONTS.black, { color: colors.accent, fontSize: 15, textAlign: 'center' }]}
+              numberOfLines={2}
             >
-              <Text
-                style={[FONTS.black, { color: colors.accent, fontSize: 15, textAlign: 'center' }]}
-                numberOfLines={2}
-              >
-                {item.value}
-              </Text>
-              <Text
-                style={[FONTS.bold, { color: colors.textMuted, fontSize: 8, marginTop: 6, textAlign: 'center' }]}
-              >
-                {item.label}
-              </Text>
-            </View>
-          ))}
-        </View>
-
-        <Button
-          label={`${i18n.t('milestone.shareTikTok')} 🎵`}
-          style={{ alignSelf: 'stretch', marginTop: 28, width: '100%' }}
-          onPress={() => router.back()}
-        />
-        <Pressable
-          onPress={() => router.back()}
-          style={{
-            marginTop: 16,
-            borderRadius: RADII.full,
-            paddingHorizontal: 12,
-            paddingVertical: 6,
-          }}
-        >
-          <Text style={[FONTS.regular, { color: colors.textMuted, fontSize: 9 }]}>
-            {i18n.t('milestone.cta')} →
-          </Text>
-        </Pressable>
+              {item.value}
+            </Text>
+            <Text style={[FONTS.bold, { color: colors.textMuted, fontSize: 8, marginTop: 6, textAlign: 'center' }]}>
+              {item.label}
+            </Text>
+          </View>
+        ))}
       </View>
+
+      <View style={{ width: '100%', marginTop: 28 }}>
+        <Button
+          label={i18n.t('milestone.shareTikTok')}
+          onPress={() =>
+            Share.share({
+              message: `${milestone.labelFr} sans fumer. ${moneySavedFormatted} economises avec Respire.`,
+            }).catch(() => undefined)
+          }
+        />
+      </View>
+
+      <Pressable
+        onPress={() => router.back()}
+        style={{
+          marginTop: 16,
+          borderRadius: RADII.full,
+          paddingHorizontal: 12,
+          paddingVertical: 6,
+        }}
+      >
+        <Text style={[FONTS.regular, { color: colors.textMuted, fontSize: 9 }]}>
+          {i18n.t('milestone.cta')} →
+        </Text>
+      </Pressable>
     </ScrollView>
   );
 }

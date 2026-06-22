@@ -5,8 +5,11 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import type { AppLanguage, AppTheme, UserProfile } from '@/services/calculations';
 import { STORAGE_KEYS } from '@/services/storage';
 
+type OnboardingDraft = Partial<UserProfile>;
+
 interface UserState {
   profile: UserProfile | null;
+  onboardingDraft: OnboardingDraft | null;
   hasCompletedOnboarding: boolean;
   hasHydrated: boolean;
   reminderEnabled: boolean;
@@ -17,6 +20,9 @@ interface UserState {
   language: AppLanguage;
   theme: AppTheme;
   setProfile: (profile: UserProfile) => void;
+  setOnboardingDraft: (draft: OnboardingDraft) => void;
+  updateOnboardingDraft: (draft: OnboardingDraft) => void;
+  clearOnboardingDraft: () => void;
   completeOnboarding: () => void;
   setReminder: (enabled: boolean, hour: number, minute: number) => void;
   setNotificationPreferences: (values: {
@@ -32,6 +38,7 @@ export const useUserStore = create<UserState>()(
   persist(
     (set) => ({
       profile: null,
+      onboardingDraft: null,
       hasCompletedOnboarding: false,
       hasHydrated: false,
       reminderEnabled: true,
@@ -42,6 +49,10 @@ export const useUserStore = create<UserState>()(
       language: 'fr',
       theme: 'system',
       setProfile: (profile) => set({ profile }),
+      setOnboardingDraft: (draft) => set({ onboardingDraft: draft }),
+      updateOnboardingDraft: (draft) =>
+        set((state) => ({ onboardingDraft: { ...state.onboardingDraft, ...draft } })),
+      clearOnboardingDraft: () => set({ onboardingDraft: null }),
       completeOnboarding: () => set({ hasCompletedOnboarding: true }),
       setReminder: (enabled, hour, minute) =>
         set({ reminderEnabled: enabled, reminderHour: hour, reminderMinute: minute }),

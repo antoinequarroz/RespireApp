@@ -87,7 +87,7 @@ export function BreathingExercise({ onComplete }: BreathingExerciseProps) {
         style={{
           width: 100,
           height: 100,
-          borderRadius: 999,
+          borderRadius: RADII.full,
           borderWidth: 2,
           borderColor: 'rgba(124,58,237,0.18)',
           alignItems: 'center',
@@ -98,7 +98,7 @@ export function BreathingExercise({ onComplete }: BreathingExerciseProps) {
           style={{
             width: 78,
             height: 78,
-            borderRadius: 999,
+            borderRadius: RADII.full,
             borderWidth: 1.5,
             borderColor: 'rgba(124,58,237,0.35)',
             alignItems: 'center',
@@ -111,7 +111,7 @@ export function BreathingExercise({ onComplete }: BreathingExerciseProps) {
               {
                 width: 58,
                 height: 58,
-                borderRadius: 999,
+                borderRadius: RADII.full,
                 borderWidth: 1.5,
                 borderColor: 'rgba(167,139,250,0.55)',
                 backgroundColor: 'rgba(124,58,237,0.14)',
@@ -139,7 +139,7 @@ export function BreathingExercise({ onComplete }: BreathingExerciseProps) {
       </View>
 
       <View style={{ alignItems: 'center', gap: 6 }}>
-        <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 18 }]}>
+        <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 16 }]}>
           {i18n.t('sosScreen.strongCraving')}
         </Text>
         <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 13, textAlign: 'center' }]}>
@@ -155,7 +155,7 @@ export function BreathingExercise({ onComplete }: BreathingExerciseProps) {
               flex: 1,
               height: 3,
               borderRadius: RADII.full,
-              backgroundColor: index === 0 ? colors.accent : colors.dividerStrong,
+              backgroundColor: index === phaseIndex ? colors.accent : colors.dividerStrong,
             }}
           />
         ))}

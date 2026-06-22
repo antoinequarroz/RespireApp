@@ -124,15 +124,6 @@
                       "group.com.respire.app"
                     ]
                   }
-                },
-                {
-                  "targetName": "ExpoWidgetsTarget",
-                  "bundleIdentifier": "com.respire.app.ExpoWidgetsTarget",
-                  "entitlements": {
-                    "com.apple.security.application-groups": [
-                      "group.com.respire.app"
-                    ]
-                  }
                 }
               ]
             }

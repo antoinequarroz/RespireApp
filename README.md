@@ -29,7 +29,7 @@ Respire suit localement:
 
 ## Fonctionnalites MVP
 
-- Onboarding en 3 ecrans
+- Onboarding en 8 ecrans
 - Home avec compteur live
 - Stats avec courbe d economies
 - Mode SOS plein ecran
@@ -58,12 +58,15 @@ npm install
 npx expo start
 npx expo start --ios
 npx expo start --android
+npm run start:dev-client
 ```
 
 Pour tester RevenueCat, widgets et les modules natifs hors Expo Go:
 
 ```bash
-npx expo start --dev-client
+npm run build:dev:android
+adb install -r ton-build.apk
+npm run start:dev-client
 ```
 
 Le serveur Metro a ete valide localement sur:
@@ -98,11 +101,7 @@ Le projet utilise:
 - iOS bundle id: `com.respire.app`
 - Android package: `com.respire.app`
 
-Avant les builds EAS, remplacer dans `app.json`:
-
-```json
-"projectId": "replace-with-your-eas-project-id"
-```
+Le `projectId` EAS est deja renseigne dans `app.json`.
 
 ## Builds EAS
 

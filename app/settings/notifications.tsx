@@ -1,41 +1,76 @@
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
+import type { ReactNode } from 'react';
 import { useState } from 'react';
-import { Linking, Platform, ScrollView, Switch, Text, View } from 'react-native';
+import { Linking, Platform, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 
-import { AppLogo } from '@/components/ui/AppLogo';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { FONTS, SPACING } from '@/constants/theme';
+import { SettingsScreenHeader } from '@/components/ui/SettingsScreenHeader';
+import { FONTS, RADII, SPACING } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { i18n } from '@/services/i18n';
-import { requestNotificationPermission, syncDailyReminder } from '@/services/notifications';
+import { requestNotificationPermission } from '@/services/notifications';
 import { useProgressStore } from '@/store/progressStore';
 import { useUserStore } from '@/store/userStore';
 
-function ToggleRow({
+function SettingRow({
   label,
   value,
   onChange,
+  hideBorder = false,
 }: {
   label: string;
   value: boolean;
   onChange: (value: boolean) => void;
+  hideBorder?: boolean;
+}) {
+  const { colors, fixed } = useTheme();
+
+  return (
+    <View
+      style={{
+        minHeight: 54,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderBottomWidth: hideBorder ? 0 : 0.5,
+        borderBottomColor: colors.divider,
+      }}
+    >
+      <Text style={[FONTS.regular, { color: colors.textPrimary, fontSize: 13, flex: 1 }]}>{label}</Text>
+      <Switch
+        value={value}
+        onValueChange={onChange}
+        trackColor={{ false: colors.dividerStrong, true: fixed.purple }}
+        thumbColor="#FFFFFF"
+      />
+    </View>
+  );
+}
+
+function Surface({
+  children,
+  style,
+}: {
+  children: ReactNode;
+  style?: object;
 }) {
   const { colors } = useTheme();
 
   return (
     <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingVertical: 12,
-        borderBottomWidth: 0.5,
-        borderBottomColor: colors.divider,
-      }}
+      style={[
+        {
+          borderRadius: RADII.lg,
+          borderWidth: 0.5,
+          borderColor: colors.bgCardBorder,
+          backgroundColor: colors.bgCard,
+          paddingHorizontal: 12,
+          paddingVertical: 12,
+        },
+        style,
+      ]}
     >
-      <Text style={[FONTS.regular, { color: colors.textPrimary, fontSize: 13, flex: 1 }]}>{label}</Text>
-      <Switch value={value} onValueChange={onChange} />
+      {children}
     </View>
   );
 }
@@ -78,66 +113,96 @@ export default function SettingsNotificationsScreen() {
     });
   };
 
+  const formattedTime = reminderDate.toLocaleTimeString('fr-CH', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.bgPrimary }}
-      contentContainerStyle={{ padding: SPACING.lg, gap: SPACING.lg, paddingBottom: SPACING.xxl }}
+      contentContainerStyle={{
+        paddingHorizontal: SPACING.lg,
+        paddingTop: SPACING.xl,
+        gap: SPACING.lg,
+        paddingBottom: SPACING.xxl,
+      }}
     >
-      <View style={{ gap: SPACING.sm, paddingTop: SPACING.lg }}>
-        <AppLogo size="header" />
-        <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 18 }]}>
-          {i18n.t('settingsScreen.notifications')}
-        </Text>
-        <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 13 }]}>
-          {i18n.t('settingsScreen.notificationsBody')}
-        </Text>
+      <View style={{ gap: 14 }}>
+        <SettingsScreenHeader
+          title={i18n.t('settingsScreen.notifications')}
+          subtitle={i18n.t('settingsScreen.notificationsBody')}
+        />
+        {!notificationPermissionGranted ? (
+          <Surface
+            style={{
+              backgroundColor: colors.accentBg,
+              borderColor: colors.accentBorder,
+              gap: 10,
+            }}
+          >
+            <Text style={[FONTS.bold, { color: colors.textPrimary, fontSize: 13 }]}>
+              {i18n.t('settingsScreen.permissionDenied')}
+            </Text>
+            <Button
+              label={i18n.t('settingsScreen.openSystemSettings')}
+              variant="secondary"
+              onPress={() => Linking.openSettings()}
+            />
+          </Surface>
+        ) : null}
       </View>
 
-      {!notificationPermissionGranted ? (
-        <Card
-          style={{
-            backgroundColor: colors.accentBg,
-            borderColor: colors.accentBorder,
-            borderWidth: 1,
-            gap: 10,
-          }}
-        >
-          <Text style={[FONTS.bold, { color: colors.textPrimary, fontSize: 13 }]}>
-            {i18n.t('settingsScreen.permissionDenied')}
-          </Text>
-          <Button label={i18n.t('settingsScreen.openSystemSettings')} variant="secondary" onPress={() => Linking.openSettings()} />
-        </Card>
-      ) : null}
-
-      <Card>
-        <ToggleRow
+      <Surface style={{ paddingTop: 4, paddingBottom: 4 }}>
+        <SettingRow
           label={i18n.t('settingsScreen.dailyReminder')}
           value={reminderEnabled}
-          onChange={(value) => {
-            setReminder(value, reminderDate.getHours(), reminderDate.getMinutes());
-            syncDailyReminder(value, reminderDate.getHours(), reminderDate.getMinutes()).catch(() => undefined);
-          }}
+          onChange={(value) => setReminder(value, reminderDate.getHours(), reminderDate.getMinutes())}
         />
 
-        <View style={{ paddingVertical: 12, borderBottomWidth: 0.5, borderBottomColor: colors.divider }}>
-          <Text style={[FONTS.regular, { color: colors.textPrimary, fontSize: 13 }]}>
+        <View
+          style={{
+            minHeight: 58,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderBottomWidth: 0.5,
+            borderBottomColor: colors.divider,
+          }}
+        >
+          <Text style={[FONTS.regular, { color: colors.textPrimary, fontSize: 13, flex: 1 }]}>
             {i18n.t('settingsScreen.reminderTime')}
           </Text>
+
           {Platform.OS === 'android' ? (
-            <Button
-              label={reminderDate.toLocaleTimeString('fr-CH', { hour: '2-digit', minute: '2-digit' })}
-              variant="secondary"
-              style={{ marginTop: 10 }}
+            <Pressable
               onPress={openAndroidTimePicker}
-            />
+              style={{
+                borderRadius: RADII.full,
+                borderWidth: 1,
+                borderColor: colors.accentBorder,
+                backgroundColor: colors.accentBg,
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+              }}
+            >
+              <Text style={[FONTS.bold, { color: colors.accent, fontSize: 11 }]}>{formattedTime}</Text>
+            </Pressable>
           ) : (
             <>
-              <Button
-                label={reminderDate.toLocaleTimeString('fr-CH', { hour: '2-digit', minute: '2-digit' })}
-                variant="secondary"
-                style={{ marginTop: 10 }}
+              <Pressable
                 onPress={() => setShowIosTimePicker((value) => !value)}
-              />
+                style={{
+                  borderRadius: RADII.full,
+                  borderWidth: 1,
+                  borderColor: colors.accentBorder,
+                  backgroundColor: colors.accentBg,
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                }}
+              >
+                <Text style={[FONTS.bold, { color: colors.accent, fontSize: 11 }]}>{formattedTime}</Text>
+              </Pressable>
               {showIosTimePicker ? (
                 <DateTimePicker
                   value={reminderDate}
@@ -146,6 +211,7 @@ export default function SettingsNotificationsScreen() {
                     if (!value) {
                       return;
                     }
+
                     setReminderDate(value);
                     setReminder(reminderEnabled, value.getHours(), value.getMinutes());
                   }}
@@ -155,17 +221,18 @@ export default function SettingsNotificationsScreen() {
           )}
         </View>
 
-        <ToggleRow
+        <SettingRow
           label={i18n.t('settingsScreen.milestoneNotifications')}
           value={milestoneNotificationsEnabled}
           onChange={(value) => setNotificationPreferences({ milestoneNotificationsEnabled: value })}
         />
-        <ToggleRow
+        <SettingRow
           label={i18n.t('settingsScreen.motivationNotifications')}
           value={motivationNotificationsEnabled}
           onChange={(value) => setNotificationPreferences({ motivationNotificationsEnabled: value })}
+          hideBorder
         />
-      </Card>
+      </Surface>
 
       <Button
         label={i18n.t('settingsScreen.requestPermission')}

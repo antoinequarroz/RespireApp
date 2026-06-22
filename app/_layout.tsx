@@ -6,7 +6,7 @@ import {
   Poppins_800ExtraBold,
   useFonts,
 } from '@expo-google-fonts/poppins';
-import { Stack, usePathname, useRouter } from 'expo-router';
+import { Stack, usePathname, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'nativewind';
@@ -20,9 +20,16 @@ import { configureI18n, i18n } from '@/services/i18n';
 import {
   configureNotificationChannel,
   getNotificationPermissionStatus,
+  syncDailyReminder,
   syncMilestoneNotifications,
 } from '@/services/notifications';
-import { initializeRevenueCat } from '@/services/revenuecat';
+import {
+  getCustomerInfo,
+  hasRevenueCatConfig,
+  initializeRevenueCat,
+  isPremiumCustomer,
+} from '@/services/revenuecat';
+import { usePremiumStore } from '@/store/premiumStore';
 import { useProgressStore } from '@/store/progressStore';
 import { useUserStore } from '@/store/userStore';
 
@@ -31,11 +38,17 @@ SplashScreen.preventAutoHideAsync().catch(() => undefined);
 export default function RootLayout() {
   const router = useRouter();
   const pathname = usePathname();
+  const segments = useSegments();
   const hasHydrated = useUserStore((state) => state.hasHydrated);
   const hasCompletedOnboarding = useUserStore((state) => state.hasCompletedOnboarding);
   const profile = useUserStore((state) => state.profile);
   const language = useUserStore((state) => state.language);
   const theme = useUserStore((state) => state.theme);
+  const reminderEnabled = useUserStore((state) => state.reminderEnabled);
+  const reminderHour = useUserStore((state) => state.reminderHour);
+  const reminderMinute = useUserStore((state) => state.reminderMinute);
+  const milestoneNotificationsEnabled = useUserStore((state) => state.milestoneNotificationsEnabled);
+  const motivationNotificationsEnabled = useUserStore((state) => state.motivationNotificationsEnabled);
   const { setColorScheme } = useColorScheme();
   const nativeScheme = useNativeColorScheme();
   const { colors, isDark } = useTheme();
@@ -43,6 +56,7 @@ export default function RootLayout() {
     (state) => state.setNotificationPermissionGranted,
   );
   const markMilestoneCelebrated = useProgressStore((state) => state.markMilestoneCelebrated);
+  const setPremiumStatus = usePremiumStore((state) => state.setPremiumStatus);
   const { nextToCelebrate } = useMilestones();
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
@@ -65,16 +79,34 @@ export default function RootLayout() {
   }, [nativeScheme, setColorScheme, theme]);
 
   useEffect(() => {
-    initializeRevenueCat().catch(() => undefined);
+    initializeRevenueCat()
+      .then(async () => {
+        if (!hasRevenueCatConfig()) {
+          return;
+        }
+
+        const customerInfo = await getCustomerInfo();
+        setPremiumStatus(isPremiumCustomer(customerInfo));
+      })
+      .catch(() => undefined);
     configureNotificationChannel().catch(() => undefined);
     getNotificationPermissionStatus()
       .then((granted) => setNotificationPermissionGranted(granted))
       .catch(() => setNotificationPermissionGranted(false));
-  }, [setNotificationPermissionGranted]);
+  }, [setNotificationPermissionGranted, setPremiumStatus]);
 
   useEffect(() => {
-    syncMilestoneNotifications(profile).catch(() => undefined);
-  }, [profile]);
+    syncMilestoneNotifications(profile, milestoneNotificationsEnabled).catch(() => undefined);
+  }, [milestoneNotificationsEnabled, profile]);
+
+  useEffect(() => {
+    syncDailyReminder(
+      reminderEnabled,
+      reminderHour,
+      reminderMinute,
+      motivationNotificationsEnabled,
+    ).catch(() => undefined);
+  }, [motivationNotificationsEnabled, reminderEnabled, reminderHour, reminderMinute]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', () => undefined);
@@ -88,14 +120,15 @@ export default function RootLayout() {
   }, [fontsLoaded, hasHydrated]);
 
   useEffect(() => {
-    const inOnboarding =
-      pathname.startsWith('/welcome') ||
-      pathname.startsWith('/setup') ||
-      pathname.startsWith('/notifications') ||
-      pathname.startsWith('/ready');
+    const topSegment = segments[0];
+    const inOnboardingGroup = topSegment === '(onboarding)';
+    const inLaunchFlow =
+      pathname === '/' ||
+      pathname === '/sos' ||
+      inOnboardingGroup;
     const inMilestone = pathname.startsWith('/milestone/');
 
-    if (!hasHydrated || !hasCompletedOnboarding || inOnboarding || inMilestone || !nextToCelebrate) {
+    if (!hasHydrated || !hasCompletedOnboarding || inLaunchFlow || inMilestone || !nextToCelebrate) {
       return;
     }
 
@@ -112,6 +145,7 @@ export default function RootLayout() {
     nextToCelebrate,
     pathname,
     router,
+    segments,
   ]);
 
   useEffect(() => {
@@ -119,20 +153,31 @@ export default function RootLayout() {
       return;
     }
 
-    const inOnboarding =
-      pathname.startsWith('/welcome') ||
-      pathname.startsWith('/setup') ||
-      pathname.startsWith('/notifications') ||
-      pathname.startsWith('/ready');
-    if (!hasCompletedOnboarding && !inOnboarding) {
-      router.replace('/welcome');
+    const topSegment = segments[0];
+    const inOnboardingGroup = topSegment === '(onboarding)';
+    const inTabsGroup = topSegment === '(tabs)';
+    const isSplashRoute = topSegment == null;
+    const inLaunchFlow = isSplashRoute || pathname === '/sos' || inOnboardingGroup;
+
+    if (!hasCompletedOnboarding && !inLaunchFlow) {
+      router.replace('/');
       return;
     }
 
-    if (hasCompletedOnboarding && inOnboarding) {
+    if (hasCompletedOnboarding && isSplashRoute) {
+      router.replace('/(tabs)');
+      return;
+    }
+
+    if (hasCompletedOnboarding && inOnboardingGroup) {
+      router.replace('/(tabs)');
+      return;
+    }
+
+    if (!hasCompletedOnboarding && inTabsGroup) {
       router.replace('/');
     }
-  }, [hasCompletedOnboarding, hasHydrated, pathname, router]);
+  }, [hasCompletedOnboarding, hasHydrated, pathname, router, segments]);
 
   if (!hasHydrated || !fontsLoaded) {
     return (

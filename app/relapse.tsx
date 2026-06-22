@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { Pressable, Text, View } from 'react-native';
+import { Alert, Pressable, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -14,17 +14,25 @@ export default function RelapseScreen() {
   const profile = useUserStore((state) => state.profile);
   const setProfile = useUserStore((state) => state.setProfile);
 
-  const resetTo = (date: Date) => {
+  const confirmReset = (date: Date) => {
     if (!profile) {
       router.back();
       return;
     }
 
-    setProfile({
-      ...profile,
-      lastCigaretteAt: date.toISOString(),
-    });
-    router.back();
+    Alert.alert(i18n.t('relapse.confirmTitle'), i18n.t('relapse.confirmBody'), [
+      { text: i18n.t('common.cancel'), style: 'cancel' },
+      {
+        text: i18n.t('common.confirm'),
+        onPress: () => {
+          setProfile({
+            ...profile,
+            lastCigaretteAt: date.toISOString(),
+          });
+          router.back();
+        },
+      },
+    ]);
   };
 
   return (
@@ -54,14 +62,14 @@ export default function RelapseScreen() {
           </Text>
         </View>
 
-        <Button label={i18n.t('relapse.resetNow')} onPress={() => resetTo(new Date())} />
+        <Button label={i18n.t('relapse.resetNow')} onPress={() => confirmReset(new Date())} />
         <Button
           label={i18n.t('relapse.resetMorning')}
           variant="secondary"
           onPress={() => {
             const morning = new Date();
             morning.setHours(0, 0, 0, 0);
-            resetTo(morning);
+            confirmReset(morning);
           }}
         />
 

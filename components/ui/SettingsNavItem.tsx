@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Pressable, Text, View } from 'react-native';
 
 import { FONTS } from '@/constants/theme';
@@ -20,15 +21,15 @@ export function SettingsNavItem({ label, value, badge, onPress }: SettingsNavIte
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingVertical: 14,
+        paddingVertical: 11,
         borderBottomWidth: 0.5,
         borderBottomColor: colors.divider,
       }}
     >
       <View style={{ flex: 1, paddingRight: 12 }}>
-        <Text style={[FONTS.bold, { color: colors.textPrimary, fontSize: 13 }]}>{label}</Text>
+        <Text style={[FONTS.regular, { color: colors.textPrimary, fontSize: 12 }]}>{label}</Text>
         {value ? (
-          <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 12, marginTop: 4 }]}>
+          <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 10, marginTop: 3 }]}>
             {value}
           </Text>
         ) : null}
@@ -49,7 +50,7 @@ export function SettingsNavItem({ label, value, badge, onPress }: SettingsNavIte
             <Text style={[FONTS.bold, { color: colors.accent, fontSize: 8 }]}>{badge}</Text>
           </View>
         ) : null}
-        <Text style={[FONTS.bold, { color: colors.textMuted, fontSize: 16 }]}>›</Text>
+        <Ionicons name="chevron-forward" size={14} color={colors.textMuted} />
       </View>
     </Pressable>
   );

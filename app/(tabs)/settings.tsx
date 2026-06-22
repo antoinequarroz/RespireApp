@@ -22,18 +22,22 @@ export default function SettingsScreen() {
   const pushSettings = (path: string) => router.push(path as Href);
 
   const profileSummary = profile
-    ? `${profile.cigarettesPerDay} / jour • ${profile.packPrice} EUR`
+    ? `${profile.cigarettesPerDay} / jour · ${profile.packPrice} EUR`
     : i18n.t('settingsScreen.profileEmpty');
 
   const themeSummary =
-    theme === 'system' ? i18n.t('common.system') : theme === 'dark' ? i18n.t('common.dark') : i18n.t('common.light');
+    theme === 'system'
+      ? i18n.t('common.system')
+      : theme === 'dark'
+        ? i18n.t('common.dark')
+        : i18n.t('common.light');
 
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.bgPrimary }}
-      contentContainerStyle={{ padding: SPACING.lg, gap: SPACING.lg, paddingBottom: SPACING.xxl }}
+      contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 52, paddingBottom: SPACING.xxl, gap: 12 }}
     >
-      <View style={{ gap: SPACING.sm, paddingTop: SPACING.lg }}>
+      <View style={{ gap: 6 }}>
         <AppLogo size="header" />
         <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 18 }]}>
           {i18n.t('settingsScreen.title')}
@@ -43,20 +47,15 @@ export default function SettingsScreen() {
         </Text>
       </View>
 
-      <Card style={{ backgroundColor: colors.bgSurface }}>
-        <Text
-          style={[
-            FONTS.bold,
-            {
-              color: colors.textMuted,
-              fontSize: 8,
-              letterSpacing: 1.5,
-              textTransform: 'uppercase',
-            },
-          ]}
-        >
-          {i18n.t('settingsScreen.profileSection')}
-        </Text>
+      <Text
+        style={[
+          FONTS.bold,
+          { color: colors.textMuted, fontSize: 8, letterSpacing: 1.5, textTransform: 'uppercase' },
+        ]}
+      >
+        {i18n.t('settingsScreen.profileSection')}
+      </Text>
+      <Card style={{ backgroundColor: colors.bgSurface, paddingVertical: 0 }}>
         <SettingsNavItem
           label={i18n.t('settingsScreen.profile')}
           value={profileSummary}
@@ -64,25 +63,24 @@ export default function SettingsScreen() {
         />
         <SettingsNavItem
           label={i18n.t('settingsScreen.notifications')}
-          value={reminderEnabled ? i18n.t('settingsScreen.notificationsOn') : i18n.t('settingsScreen.notificationsOff')}
+          value={
+            reminderEnabled
+              ? i18n.t('settingsScreen.notificationsOn')
+              : i18n.t('settingsScreen.notificationsOff')
+          }
           onPress={() => pushSettings('/settings/notifications')}
         />
       </Card>
 
-      <Card style={{ backgroundColor: colors.bgSurface }}>
-        <Text
-          style={[
-            FONTS.bold,
-            {
-              color: colors.textMuted,
-              fontSize: 8,
-              letterSpacing: 1.5,
-              textTransform: 'uppercase',
-            },
-          ]}
-        >
-          {i18n.t('settingsScreen.appearanceSection')}
-        </Text>
+      <Text
+        style={[
+          FONTS.bold,
+          { color: colors.textMuted, fontSize: 8, letterSpacing: 1.5, textTransform: 'uppercase' },
+        ]}
+      >
+        {i18n.t('settingsScreen.appearanceSection')}
+      </Text>
+      <Card style={{ backgroundColor: colors.bgSurface, paddingVertical: 0 }}>
         <SettingsNavItem
           label={i18n.t('common.theme')}
           value={themeSummary}
@@ -95,26 +93,15 @@ export default function SettingsScreen() {
         />
       </Card>
 
-      <Card
-        style={{
-          backgroundColor: colors.accentBg,
-          borderColor: colors.accentBorder,
-          borderWidth: 1,
-        }}
+      <Text
+        style={[
+          FONTS.bold,
+          { color: colors.textMuted, fontSize: 8, letterSpacing: 1.5, textTransform: 'uppercase' },
+        ]}
       >
-        <Text
-          style={[
-            FONTS.bold,
-            {
-              color: colors.accent,
-              fontSize: 8,
-              letterSpacing: 1.5,
-              textTransform: 'uppercase',
-            },
-          ]}
-        >
-          {i18n.t('settingsScreen.subscriptionSection')}
-        </Text>
+        {i18n.t('settingsScreen.subscriptionSection')}
+      </Text>
+      <Card style={{ backgroundColor: colors.bgSurface, paddingVertical: 0 }}>
         <SettingsNavItem
           label={i18n.t('settingsScreen.subscription')}
           value={isPremium ? i18n.t('common.premium') : i18n.t('common.free')}
@@ -122,27 +109,19 @@ export default function SettingsScreen() {
           onPress={() => pushSettings('/settings/subscription')}
         />
         {!isPremium ? (
-          <SettingsNavItem
-            label={i18n.t('settingsScreen.goPremium')}
-            onPress={() => router.push('/paywall')}
-          />
+          <SettingsNavItem label={i18n.t('settingsScreen.goPremium')} onPress={() => router.push('/paywall')} />
         ) : null}
       </Card>
 
-      <Card style={{ backgroundColor: colors.bgSurface }}>
-        <Text
-          style={[
-            FONTS.bold,
-            {
-              color: colors.textMuted,
-              fontSize: 8,
-              letterSpacing: 1.5,
-              textTransform: 'uppercase',
-            },
-          ]}
-        >
-          {i18n.t('settingsScreen.aboutSection')}
-        </Text>
+      <Text
+        style={[
+          FONTS.bold,
+          { color: colors.textMuted, fontSize: 8, letterSpacing: 1.5, textTransform: 'uppercase' },
+        ]}
+      >
+        {i18n.t('settingsScreen.aboutSection')}
+      </Text>
+      <Card style={{ backgroundColor: colors.bgSurface, paddingVertical: 0 }}>
         <SettingsNavItem
           label={i18n.t('settingsScreen.about')}
           value="1.0.0"

@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
-import { Text } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { FONTS } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
@@ -16,9 +16,9 @@ export default function TabsLayout() {
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.textDisabled,
         tabBarStyle: {
-          height: 68,
-          paddingTop: 6,
-          paddingBottom: 4,
+          height: 64,
+          paddingTop: 10,
+          paddingBottom: 8,
           backgroundColor: colors.navBg,
           borderTopWidth: 0.5,
           borderTopColor: colors.navBorder,
@@ -38,15 +38,7 @@ export default function TabsLayout() {
             <Ionicons name={focused ? 'home' : 'home-outline'} color={color} size={18} />
           ),
           tabBarLabel: ({ focused, color }) => (
-            <Text
-              style={[
-                focused ? FONTS.bold : FONTS.regular,
-                {
-                  color,
-                  fontSize: 8,
-                },
-              ]}
-            >
+            <Text style={[focused ? FONTS.bold : FONTS.regular, { color, fontSize: 8 }]}>
               {i18n.t('tabs.home')}
             </Text>
           ),
@@ -71,7 +63,22 @@ export default function TabsLayout() {
         options={{
           title: i18n.t('tabs.journal'),
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'calendar' : 'calendar-outline'} color={color} size={18} />
+            <View style={{ position: 'relative' }}>
+              <Ionicons name={focused ? 'calendar' : 'calendar-outline'} color={color} size={18} />
+              <View
+                style={{
+                  position: 'absolute',
+                  top: -4,
+                  right: -8,
+                  backgroundColor: '#7C3AED',
+                  borderRadius: 4,
+                  paddingHorizontal: 3,
+                  paddingVertical: 1,
+                }}
+              >
+                <Text style={[FONTS.bold, { color: '#FFFFFF', fontSize: 6 }]}>PRO</Text>
+              </View>
+            </View>
           ),
           tabBarLabel: ({ focused, color }) => (
             <Text style={[focused ? FONTS.bold : FONTS.regular, { color, fontSize: 8 }]}>

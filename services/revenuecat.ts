@@ -26,6 +26,10 @@ export async function initializeRevenueCat(appUserID?: string) {
   Purchases.configure({ apiKey, appUserID });
 }
 
+export function hasRevenueCatConfig() {
+  return Boolean(getApiKey());
+}
+
 export async function fetchOfferings() {
   const apiKey = getApiKey();
   if (!apiKey) {
@@ -43,6 +47,15 @@ export async function purchasePackage(selectedPackage: PurchasesPackage) {
 
 export async function restoreRevenueCatPurchases() {
   return Purchases.restorePurchases();
+}
+
+export async function getCustomerInfo() {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    return null;
+  }
+
+  return Purchases.getCustomerInfo();
 }
 
 export async function openSubscriptionManagement() {
