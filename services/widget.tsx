@@ -1,10 +1,6 @@
+import * as Linking from 'expo-linking';
 import type { ReactElement } from 'react';
-import { Linking } from 'react-native';
-import {
-  FlexWidget,
-  requestWidgetUpdate,
-  TextWidget,
-} from 'react-native-android-widget';
+import { Platform } from 'react-native';
 
 import { formatCurrency } from '@/services/calculations';
 
@@ -20,6 +16,13 @@ let latestSnapshot: WidgetSnapshot = {
 
 export async function updateWidgetSnapshot(snapshot: WidgetSnapshot) {
   latestSnapshot = snapshot;
+  if (Platform.OS !== 'android') {
+    return;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { requestWidgetUpdate } = require('react-native-android-widget');
+
   await requestWidgetUpdate({
     widgetName: 'RespireWidget',
     renderWidget: () => renderRespireAndroidWidget(),
@@ -27,6 +30,9 @@ export async function updateWidgetSnapshot(snapshot: WidgetSnapshot) {
 }
 
 export function renderRespireAndroidWidget(): ReactElement {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { FlexWidget, TextWidget } = require('react-native-android-widget');
+
   return (
     <FlexWidget
       clickAction="OPEN_SOS"

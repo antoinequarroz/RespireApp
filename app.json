@@ -8,7 +8,9 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "experiments": {
       "typedRoutes": true
     },
@@ -22,7 +24,8 @@
       "bundleIdentifier": "com.respire.app",
       "deploymentTarget": "16.0",
       "infoPlist": {
-        "NSUserNotificationsUsageDescription": "Respire utilise les notifications pour tes rappels quotidiens et milestones."
+        "NSUserNotificationsUsageDescription": "Respire utilise les notifications pour tes rappels quotidiens et milestones.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -45,10 +48,16 @@
               "host": "sos"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ],
-      "permissions": ["RECEIVE_BOOT_COMPLETED", "VIBRATE"]
+      "permissions": [
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE"
+      ]
     },
     "plugins": [
       "expo-router",
@@ -75,7 +84,10 @@
               "displayName": "Respire",
               "description": "Jours sans fumer et argent economise",
               "contentMarginsDisabled": true,
-              "supportedFamilies": ["systemSmall", "systemMedium"]
+              "supportedFamilies": [
+                "systemSmall",
+                "systemMedium"
+              ]
             }
           ]
         }
@@ -99,8 +111,36 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "replace-with-your-eas-project-id"
-      }
-    }
+        "projectId": "26df8320-107c-4dad-bdd8-d1291ac60fa5",
+        "build": {
+          "experimental": {
+            "ios": {
+              "appExtensions": [
+                {
+                  "targetName": "ExpoWidgetsTarget",
+                  "bundleIdentifier": "com.respire.app.ExpoWidgetsTarget",
+                  "entitlements": {
+                    "com.apple.security.application-groups": [
+                      "group.com.respire.app"
+                    ]
+                  }
+                },
+                {
+                  "targetName": "ExpoWidgetsTarget",
+                  "bundleIdentifier": "com.respire.app.ExpoWidgetsTarget",
+                  "entitlements": {
+                    "com.apple.security.application-groups": [
+                      "group.com.respire.app"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "router": {}
+    },
+    "owner": "antoinequarrs-organization"
   }
 }

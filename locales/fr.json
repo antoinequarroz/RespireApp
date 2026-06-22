@@ -93,6 +93,7 @@
     "subtitle": "Moins cher qu un paquet de cigarettes.",
     "monthly": "4,99 €/mois",
     "yearly": "34,99 €/an",
+    "recommended": "Recommande",
     "yearlyBadge": "Le meilleur choix",
     "restore": "Restaurer les achats",
     "manage": "Gerer l abonnement",
@@ -121,7 +122,8 @@
   "milestone": {
     "title": "Milestone atteint",
     "cta": "Continuer",
-    "share": "Continuer la serie"
+    "share": "Continuer la serie",
+    "shareTikTok": "Partager sur TikTok"
   },
   "notifications": {
     "dailyTitle": "Respire",

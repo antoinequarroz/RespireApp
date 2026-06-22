@@ -1,10 +1,12 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, ScrollView, Text } from 'react-native';
+import { Alert, ScrollView, Text, View } from 'react-native';
 
-import { Badge } from '@/components/ui/Badge';
+import { AppLogo } from '@/components/ui/AppLogo';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { FONTS, RADII, SPACING } from '@/constants/theme';
+import { useTheme } from '@/hooks/useTheme';
 import { i18n } from '@/services/i18n';
 import {
   fetchOfferings,
@@ -17,6 +19,7 @@ import { usePremiumStore } from '@/store/premiumStore';
 
 export default function PaywallScreen() {
   const router = useRouter();
+  const { colors, fixed } = useTheme();
   const setPremiumStatus = usePremiumStore((state) => state.setPremiumStatus);
   const setOfferings = usePremiumStore((state) => state.setOfferings);
   const offerings = usePremiumStore((state) => state.offerings);
@@ -54,34 +57,179 @@ export default function PaywallScreen() {
     }
   };
 
+  const packages =
+    offerings.length > 0
+      ? offerings
+      : [
+          {
+            identifier: '$rc_monthly',
+            title: 'Mensuel',
+            priceString: i18n.t('paywall.monthly'),
+          },
+          {
+            identifier: '$rc_annual',
+            title: 'Annuel',
+            priceString: i18n.t('paywall.yearly'),
+          },
+        ];
+
   return (
-    <ScrollView className="flex-1 bg-white dark:bg-night" contentContainerStyle={{ padding: 16, gap: 16 }}>
-      <Text className="pt-8 text-3xl font-bold text-ink dark:text-white">
-        {i18n.t('paywall.title')}
-      </Text>
-      <Text className="text-base text-zinc-600 dark:text-zinc-300">{i18n.t('paywall.subtitle')}</Text>
-      <Card className="gap-3">
-        <Text className="text-lg font-semibold text-ink dark:text-white">{i18n.t('common.free')}</Text>
-        <Text className="text-base text-zinc-600 dark:text-zinc-300">{i18n.t('paywall.freeFeatures')}</Text>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: colors.bgPrimary }}
+      contentContainerStyle={{ padding: SPACING.lg, gap: SPACING.lg, paddingBottom: SPACING.xxl }}
+    >
+      <View style={{ gap: SPACING.sm, paddingTop: SPACING.xl }}>
+        <AppLogo size="header" />
+        <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 18 }]}>
+          {i18n.t('paywall.title')}
+        </Text>
+        <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 13 }]}>
+          {i18n.t('paywall.subtitle')}
+        </Text>
+      </View>
+
+      <Card
+        style={{
+          backgroundColor: colors.accentBg,
+          borderColor: colors.accentBorder,
+          borderWidth: 1,
+        }}
+      >
+        <Text
+          style={[
+            FONTS.bold,
+            {
+              color: colors.accent,
+              fontSize: 8,
+              letterSpacing: 1.2,
+              textTransform: 'uppercase',
+            },
+          ]}
+        >
+          Pourquoi passer premium
+        </Text>
+        <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 18, marginTop: 8 }]}>
+          Tenir plus longtemps, avec plus de recul.
+        </Text>
+        <View style={{ gap: 10, marginTop: 14 }}>
+          {[
+            'Journal quotidien pour voir les jours qui glissent.',
+            'Tendances humeur / envies pour sentir une vraie progression.',
+            'Rappels plus engages pour eviter les rechutes passives.',
+          ].map((item) => (
+            <Text key={item} style={[FONTS.regular, { color: colors.textSecondary, fontSize: 13 }]}>
+              • {item}
+            </Text>
+          ))}
+        </View>
       </Card>
-      <Card className="gap-3 border border-primary">
-        <Badge label={i18n.t('paywall.yearlyBadge')} tone="accent" />
-        <Text className="text-lg font-semibold text-ink dark:text-white">{i18n.t('common.premium')}</Text>
-        <Text className="text-base text-zinc-600 dark:text-zinc-300">{i18n.t('paywall.premiumFeatures')}</Text>
+
+      {packages.map((item, index) => {
+        const highlighted = index === 1;
+
+        return (
+          <View key={item.identifier}>
+            <Card
+              style={{
+                borderColor: highlighted ? colors.accent : colors.bgCardBorder,
+                borderWidth: highlighted ? 1 : 0.5,
+                paddingTop: highlighted ? 18 : 16,
+              }}
+            >
+              {highlighted ? (
+                <View
+                  style={{
+                    position: 'absolute',
+                    top: -6,
+                    right: 10,
+                    borderRadius: RADII.full,
+                    backgroundColor: fixed.purple,
+                    paddingHorizontal: 8,
+                    paddingVertical: 3,
+                  }}
+                >
+                  <Text style={[FONTS.bold, { color: '#FFFFFF', fontSize: 8 }]}>
+                    {i18n.t('paywall.recommended')}
+                  </Text>
+                </View>
+              ) : null}
+
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                }}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 18 }]}>
+                    {item.title}
+                  </Text>
+                  <Text
+                    style={[
+                      FONTS.black,
+                      {
+                        color: highlighted ? colors.accent : colors.textPrimary,
+                        fontSize: 22,
+                        marginTop: 6,
+                      },
+                    ]}
+                  >
+                    {item.priceString}
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    borderRadius: RADII.full,
+                    backgroundColor: highlighted ? colors.emeraldBg : colors.bgCard,
+                    paddingHorizontal: 10,
+                    paddingVertical: 5,
+                  }}
+                >
+                  <Text
+                    style={[
+                      FONTS.bold,
+                      {
+                        color: highlighted ? colors.emerald : colors.textSecondary,
+                        fontSize: 8,
+                      },
+                    ]}
+                  >
+                    {highlighted ? 'Le plus rentable' : 'Flexible'}
+                  </Text>
+                </View>
+              </View>
+
+              <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 13, marginTop: 12 }]}>
+                {highlighted
+                  ? 'Moins cher qu un paquet par mois, avec le suivi complet.'
+                  : 'Le bon point d entree pour tester le mode premium.'}
+              </Text>
+
+              <Button
+                label={busy ? i18n.t('common.loading') : 'Choisir ce plan'}
+                style={{ marginTop: 18 }}
+                onPress={() => buy(item.identifier)}
+              />
+            </Card>
+          </View>
+        );
+      })}
+
+      <Card>
+        <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 18 }]}>
+          Gratuit vs Premium
+        </Text>
+        <View style={{ gap: 10, marginTop: 12 }}>
+          <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 13 }]}>
+            Gratuit: compteur, economies, milestones
+          </Text>
+          <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 13 }]}>
+            Premium: journal, heatmap, tendances, meilleur suivi
+          </Text>
+        </View>
       </Card>
-      {(offerings.length > 0
-        ? offerings
-        : [
-            { identifier: '$rc_monthly', title: i18n.t('paywall.monthly'), priceString: i18n.t('paywall.monthly') },
-            { identifier: '$rc_annual', title: i18n.t('paywall.yearly'), priceString: i18n.t('paywall.yearly') },
-          ]
-      ).map((item) => (
-        <Card key={item.identifier} className="gap-3">
-          <Text className="text-xl font-semibold text-ink dark:text-white">{item.title}</Text>
-          <Text className="text-base text-accent">{item.priceString}</Text>
-          <Button label={busy ? i18n.t('common.loading') : i18n.t('common.continue')} onPress={() => buy(item.identifier)} />
-        </Card>
-      ))}
+
       <Button
         label={i18n.t('paywall.restore')}
         variant="secondary"

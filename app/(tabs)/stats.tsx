@@ -3,10 +3,13 @@ import Svg, { Path } from 'react-native-svg';
 
 import { MilestoneCard } from '@/components/domain/MilestoneCard';
 import { SavingsEquivalent } from '@/components/domain/SavingsEquivalent';
+import { AppLogo } from '@/components/ui/AppLogo';
 import { Card } from '@/components/ui/Card';
+import { FONTS, SPACING } from '@/constants/theme';
 import { useHealthStats } from '@/hooks/useHealthStats';
 import { useMilestones } from '@/hooks/useMilestones';
 import { useSavings } from '@/hooks/useSavings';
+import { useTheme } from '@/hooks/useTheme';
 import { getAvoidedCigarettes } from '@/services/calculations';
 import { i18n } from '@/services/i18n';
 import { useUserStore } from '@/store/userStore';
@@ -23,6 +26,7 @@ function buildPath(points: { x: number; y: number }[]) {
 }
 
 export default function StatsScreen() {
+  const { colors } = useTheme();
   const profile = useUserStore((state) => state.profile);
   const savings = useSavings();
   const milestones = useMilestones();
@@ -33,53 +37,90 @@ export default function StatsScreen() {
   );
 
   return (
-    <ScrollView className="flex-1 bg-white dark:bg-night" contentContainerStyle={{ padding: 16, gap: 16 }}>
-      <Text className="pt-6 text-3xl font-bold text-ink dark:text-white">
-        {i18n.t('statsScreen.title')}
-      </Text>
-      <Card className="gap-4">
-        <Text className="text-lg font-semibold text-ink dark:text-white">
+    <ScrollView
+      style={{ flex: 1, backgroundColor: colors.bgPrimary }}
+      contentContainerStyle={{ padding: SPACING.lg, gap: SPACING.lg, paddingBottom: SPACING.xxl }}
+    >
+      <View style={{ gap: SPACING.sm, paddingTop: SPACING.lg }}>
+        <AppLogo size="header" />
+        <Text style={[FONTS.black, { fontSize: 18, color: colors.textPrimary }]}>
+          {i18n.t('statsScreen.title')}
+        </Text>
+      </View>
+
+      <Card>
+        <Text
+          style={[
+            FONTS.bold,
+            {
+              color: colors.textMuted,
+              fontSize: 9,
+              letterSpacing: 2,
+              textTransform: 'uppercase',
+            },
+          ]}
+        >
           {i18n.t('statsScreen.savingsCurve')}
         </Text>
-        <Svg width="100%" height={140} viewBox="0 0 300 120">
-          <Path d={buildPath(savings.series)} stroke="#1B6CA8" strokeWidth={4} fill="none" />
+        <Svg width="100%" height={140} viewBox="0 0 300 120" style={{ marginTop: 12 }}>
+          <Path d={buildPath(savings.series)} stroke={colors.accent} strokeWidth={4} fill="none" />
         </Svg>
       </Card>
-      <View className="flex-row gap-4">
-        <Card className="flex-1 gap-2">
-          <Text className="text-sm text-zinc-500 dark:text-zinc-400">
+
+      <View style={{ flexDirection: 'row', gap: SPACING.md }}>
+        <Card style={{ flex: 1 }}>
+          <Text style={[FONTS.bold, { color: colors.textMuted, fontSize: 9 }]}>
             {i18n.t('home.avoided')}
           </Text>
-          <Text className="text-3xl font-bold text-ink dark:text-white">{avoided}</Text>
+          <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 22, marginTop: 6 }]}>
+            {avoided}
+          </Text>
         </Card>
-        <Card className="flex-1 gap-2">
-          <Text className="text-sm text-zinc-500 dark:text-zinc-400">
+        <Card
+          style={{
+            flex: 1,
+            backgroundColor: colors.emeraldBg,
+            borderColor: colors.emeraldBorder,
+          }}
+        >
+          <Text style={[FONTS.bold, { color: colors.emerald, fontSize: 9, opacity: 0.6 }]}>
             {i18n.t('home.moneySaved')}
           </Text>
-          <Text className="text-3xl font-bold text-accent">{savings.moneySavedFormatted}</Text>
+          <Text style={[FONTS.black, { color: colors.emerald, fontSize: 22, marginTop: 6 }]}>
+            {savings.moneySavedFormatted}
+          </Text>
         </Card>
       </View>
-      <Card className="gap-3">
-        <Text className="text-lg font-semibold text-ink dark:text-white">
+
+      <Card>
+        <Text style={[FONTS.black, { fontSize: 18, color: colors.textPrimary }]}>
           {i18n.t('statsScreen.healthTimeline')}
         </Text>
-        {health.timeline.map((item) => (
-          <MilestoneCard key={item.key} label={item.labelFr} reached={item.reached} />
-        ))}
+        <View style={{ gap: SPACING.sm, marginTop: 12 }}>
+          {health.timeline.map((item) => (
+            <MilestoneCard key={item.key} label={item.labelFr} reached={item.reached} />
+          ))}
+        </View>
       </Card>
-      <Card className="gap-3">
-        <Text className="text-lg font-semibold text-ink dark:text-white">
+
+      <Card>
+        <Text style={[FONTS.black, { fontSize: 18, color: colors.textPrimary }]}>
           {i18n.t('statsScreen.equivalents')}
         </Text>
-        <SavingsEquivalent emoji={savings.equivalent.emoji} label={savings.equivalent.labelFr} />
+        <View style={{ marginTop: 12 }}>
+          <SavingsEquivalent emoji={savings.equivalent.emoji} label={savings.equivalent.labelFr} />
+        </View>
       </Card>
-      <Card className="gap-3">
-        <Text className="text-lg font-semibold text-ink dark:text-white">
+
+      <Card>
+        <Text style={[FONTS.black, { fontSize: 18, color: colors.textPrimary }]}>
           {i18n.t('home.nextMilestone')}
         </Text>
-        {milestones.milestones.map((item) => (
-          <MilestoneCard key={item.id} label={item.labelFr} reached={item.reached} />
-        ))}
+        <View style={{ gap: SPACING.sm, marginTop: 12 }}>
+          {milestones.milestones.map((item) => (
+            <MilestoneCard key={item.id} label={item.labelFr} reached={item.reached} />
+          ))}
+        </View>
       </Card>
     </ScrollView>
   );

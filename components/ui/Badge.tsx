@@ -1,20 +1,51 @@
 import { Text, View } from 'react-native';
 
+import { FONTS, RADII } from '@/constants/theme';
+import { useTheme } from '@/hooks/useTheme';
+
 interface BadgeProps {
   label: string;
   tone?: 'accent' | 'neutral' | 'warning';
 }
 
 export function Badge({ label, tone = 'neutral' }: BadgeProps) {
-  const tones = {
-    accent: 'bg-accent/15 text-accent',
-    neutral: 'bg-zinc-200 text-ink dark:bg-zinc-800 dark:text-white',
-    warning: 'bg-sos/15 text-sos',
+  const { colors, fixed } = useTheme();
+  const styles = {
+    accent: {
+      backgroundColor: fixed.purple,
+      color: '#FFFFFF',
+    },
+    neutral: {
+      backgroundColor: colors.bgCard,
+      color: colors.textSecondary,
+    },
+    warning: {
+      backgroundColor: colors.accentBg,
+      color: colors.accent,
+    },
   }[tone];
 
   return (
-    <View className={`self-start rounded-full px-3 py-1 ${tones}`}>
-      <Text className="text-xs font-semibold">{label}</Text>
+    <View
+      style={{
+        alignSelf: 'flex-start',
+        borderRadius: RADII.full,
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        backgroundColor: styles.backgroundColor,
+      }}
+    >
+      <Text
+        style={[
+          FONTS.bold,
+          {
+            color: styles.color,
+            fontSize: 8,
+          },
+        ]}
+      >
+        {label}
+      </Text>
     </View>
   );
 }

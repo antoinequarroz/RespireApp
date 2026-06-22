@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { Card } from '@/components/ui/Card';
+import { FONTS, RADII } from '@/constants/theme';
+import { useTheme } from '@/hooks/useTheme';
 import { i18n } from '@/services/i18n';
 
 interface DistractionGameProps {
@@ -23,6 +25,7 @@ function createTargets(): Target[] {
 }
 
 export function DistractionGame({ onComplete }: DistractionGameProps) {
+  const { colors } = useTheme();
   const [timeLeft, setTimeLeft] = useState(15);
   const [score, setScore] = useState(0);
   const [targets, setTargets] = useState<Target[]>(createTargets());
@@ -45,25 +48,44 @@ export function DistractionGame({ onComplete }: DistractionGameProps) {
   const headline = useMemo(() => `${i18n.t('sosScreen.score')}: ${score}`, [score]);
 
   return (
-    <Card className="gap-4">
-      <View className="flex-row justify-between">
-        <Text className="text-lg font-semibold text-ink dark:text-white">{headline}</Text>
-        <Text className="text-sm text-zinc-500 dark:text-zinc-400">
+    <Card>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 14 }}>
+        <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 13 }]}>{headline}</Text>
+        <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 13 }]}>
           {i18n.t('sosScreen.timeLeft')}: {timeLeft}s
         </Text>
       </View>
-      <View className="relative h-52 rounded-md bg-zinc-100 dark:bg-zinc-950">
+      <View
+        style={{
+          position: 'relative',
+          height: 208,
+          borderRadius: RADII.md,
+          backgroundColor: colors.bgSurface,
+          overflow: 'hidden',
+        }}
+      >
         {targets.map((target) => (
           <Pressable
             key={target.id}
-            className="absolute h-14 w-14 items-center justify-center rounded-full bg-accent"
-            style={{ left: target.left, top: target.top }}
+            style={{
+              position: 'absolute',
+              left: target.left,
+              top: target.top,
+              width: 56,
+              height: 56,
+              borderRadius: 999,
+              backgroundColor: colors.accentBg,
+              borderColor: colors.accentBorder,
+              borderWidth: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
             onPress={() => {
               setScore((value) => value + 1);
               setTargets(createTargets());
             }}
           >
-            <Text className="text-lg font-bold text-white">+</Text>
+            <Text style={[FONTS.black, { color: colors.accent, fontSize: 18 }]}>+</Text>
           </Pressable>
         ))}
       </View>

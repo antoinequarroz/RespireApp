@@ -1,15 +1,27 @@
 import '../global.css';
 
+import {
+  Poppins_400Regular,
+  Poppins_700Bold,
+  Poppins_800ExtraBold,
+  useFonts,
+} from '@expo-google-fonts/poppins';
 import { Stack, usePathname, useRouter } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'nativewind';
 import { useEffect } from 'react';
-import { ActivityIndicator, useColorScheme as useNativeColorScheme,View } from 'react-native';
+import { ActivityIndicator, useColorScheme as useNativeColorScheme, View } from 'react-native';
 
+import { DARK, LIGHT } from '@/constants/theme';
+import { useTheme } from '@/hooks/useTheme';
 import { configureI18n, i18n } from '@/services/i18n';
 import { configureNotificationChannel, requestNotificationPermission, syncMilestoneNotifications } from '@/services/notifications';
 import { initializeRevenueCat } from '@/services/revenuecat';
 import { useProgressStore } from '@/store/progressStore';
 import { useUserStore } from '@/store/userStore';
+
+SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
 export default function RootLayout() {
   const router = useRouter();
@@ -21,9 +33,15 @@ export default function RootLayout() {
   const theme = useUserStore((state) => state.theme);
   const { setColorScheme } = useColorScheme();
   const nativeScheme = useNativeColorScheme();
+  const { colors, isDark } = useTheme();
   const setNotificationPermissionGranted = useProgressStore(
     (state) => state.setNotificationPermissionGranted,
   );
+  const [fontsLoaded] = useFonts({
+    Poppins_400Regular,
+    Poppins_700Bold,
+    Poppins_800ExtraBold,
+  });
 
   useEffect(() => {
     configureI18n(language);
@@ -52,6 +70,12 @@ export default function RootLayout() {
   }, [profile]);
 
   useEffect(() => {
+    if (fontsLoaded && hasHydrated) {
+      SplashScreen.hideAsync().catch(() => undefined);
+    }
+  }, [fontsLoaded, hasHydrated]);
+
+  useEffect(() => {
     if (!hasHydrated) {
       return;
     }
@@ -67,29 +91,42 @@ export default function RootLayout() {
     }
   }, [hasCompletedOnboarding, hasHydrated, pathname, router]);
 
-  if (!hasHydrated) {
+  if (!hasHydrated || !fontsLoaded) {
     return (
-      <View className="flex-1 items-center justify-center bg-white dark:bg-night">
-        <ActivityIndicator size="large" color="#1B6CA8" />
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bgPrimary }}>
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     );
   }
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: theme === 'dark' ? '#121212' : '#FFFFFF' },
-      }}
-    >
-      <Stack.Screen name="(onboarding)" />
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="sos" options={{ presentation: 'fullScreenModal' }} />
+    <>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: {
+            backgroundColor: isDark ? DARK.bgPrimary : LIGHT.bgPrimary,
+          },
+        }}
+      >
+        <Stack.Screen name="(onboarding)" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen
+          name="sos"
+          options={{
+            presentation: 'fullScreenModal',
+            contentStyle: {
+              backgroundColor: isDark ? DARK.bgSos : LIGHT.bgSos,
+            },
+          }}
+        />
       <Stack.Screen name="paywall" options={{ presentation: 'modal' }} />
       <Stack.Screen
         name="milestone/[id]"
         options={{ headerShown: true, title: i18n.t('milestone.title') }}
       />
-    </Stack>
+      </Stack>
+    </>
   );
 }
