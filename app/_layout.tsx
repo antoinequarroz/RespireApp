@@ -11,12 +11,17 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'nativewind';
 import { useEffect } from 'react';
-import { ActivityIndicator, useColorScheme as useNativeColorScheme, View } from 'react-native';
+import { AppState, useColorScheme as useNativeColorScheme, View } from 'react-native';
 
 import { DARK, LIGHT } from '@/constants/theme';
+import { useMilestones } from '@/hooks/useMilestones';
 import { useTheme } from '@/hooks/useTheme';
 import { configureI18n, i18n } from '@/services/i18n';
-import { configureNotificationChannel, requestNotificationPermission, syncMilestoneNotifications } from '@/services/notifications';
+import {
+  configureNotificationChannel,
+  getNotificationPermissionStatus,
+  syncMilestoneNotifications,
+} from '@/services/notifications';
 import { initializeRevenueCat } from '@/services/revenuecat';
 import { useProgressStore } from '@/store/progressStore';
 import { useUserStore } from '@/store/userStore';
@@ -37,6 +42,8 @@ export default function RootLayout() {
   const setNotificationPermissionGranted = useProgressStore(
     (state) => state.setNotificationPermissionGranted,
   );
+  const markMilestoneCelebrated = useProgressStore((state) => state.markMilestoneCelebrated);
+  const { nextToCelebrate } = useMilestones();
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
     Poppins_700Bold,
@@ -60,7 +67,7 @@ export default function RootLayout() {
   useEffect(() => {
     initializeRevenueCat().catch(() => undefined);
     configureNotificationChannel().catch(() => undefined);
-    requestNotificationPermission()
+    getNotificationPermissionStatus()
       .then((granted) => setNotificationPermissionGranted(granted))
       .catch(() => setNotificationPermissionGranted(false));
   }, [setNotificationPermissionGranted]);
@@ -70,17 +77,53 @@ export default function RootLayout() {
   }, [profile]);
 
   useEffect(() => {
+    const subscription = AppState.addEventListener('change', () => undefined);
+    return () => subscription.remove();
+  }, []);
+
+  useEffect(() => {
     if (fontsLoaded && hasHydrated) {
       SplashScreen.hideAsync().catch(() => undefined);
     }
   }, [fontsLoaded, hasHydrated]);
 
   useEffect(() => {
+    const inOnboarding =
+      pathname.startsWith('/welcome') ||
+      pathname.startsWith('/setup') ||
+      pathname.startsWith('/notifications') ||
+      pathname.startsWith('/ready');
+    const inMilestone = pathname.startsWith('/milestone/');
+
+    if (!hasHydrated || !hasCompletedOnboarding || inOnboarding || inMilestone || !nextToCelebrate) {
+      return;
+    }
+
+    if (AppState.currentState !== 'active') {
+      return;
+    }
+
+    markMilestoneCelebrated(nextToCelebrate.id);
+    router.push(`/milestone/${nextToCelebrate.id}`);
+  }, [
+    hasCompletedOnboarding,
+    hasHydrated,
+    markMilestoneCelebrated,
+    nextToCelebrate,
+    pathname,
+    router,
+  ]);
+
+  useEffect(() => {
     if (!hasHydrated) {
       return;
     }
 
-    const inOnboarding = pathname.startsWith('/welcome') || pathname.startsWith('/setup') || pathname.startsWith('/ready');
+    const inOnboarding =
+      pathname.startsWith('/welcome') ||
+      pathname.startsWith('/setup') ||
+      pathname.startsWith('/notifications') ||
+      pathname.startsWith('/ready');
     if (!hasCompletedOnboarding && !inOnboarding) {
       router.replace('/welcome');
       return;
@@ -94,7 +137,27 @@ export default function RootLayout() {
   if (!hasHydrated || !fontsLoaded) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bgPrimary }}>
-        <ActivityIndicator size="large" color={colors.accent} />
+        <View
+          style={{
+            width: 56,
+            height: 56,
+            borderRadius: 999,
+            borderWidth: 1,
+            borderColor: colors.accentBorder,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: colors.accentBg,
+          }}
+        >
+          <View
+            style={{
+              width: 18,
+              height: 18,
+              borderRadius: 999,
+              backgroundColor: colors.accent,
+            }}
+          />
+        </View>
       </View>
     );
   }
@@ -121,11 +184,12 @@ export default function RootLayout() {
             },
           }}
         />
-      <Stack.Screen name="paywall" options={{ presentation: 'modal' }} />
-      <Stack.Screen
-        name="milestone/[id]"
-        options={{ headerShown: true, title: i18n.t('milestone.title') }}
-      />
+        <Stack.Screen name="relapse" options={{ presentation: 'transparentModal' }} />
+        <Stack.Screen name="paywall" options={{ presentation: 'modal' }} />
+        <Stack.Screen
+          name="milestone/[id]"
+          options={{ headerShown: true, title: i18n.t('milestone.title') }}
+        />
       </Stack>
     </>
   );

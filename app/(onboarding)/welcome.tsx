@@ -3,7 +3,6 @@ import { Text, View } from 'react-native';
 
 import { AppLogo } from '@/components/ui/AppLogo';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
 import { FONTS, SPACING } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { i18n } from '@/services/i18n';
@@ -25,53 +24,70 @@ export default function WelcomeScreen() {
         paddingVertical: SPACING.xxl,
       }}
     >
-      <View style={{ gap: SPACING.xl }}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <View
           style={{
-            marginTop: SPACING.xxl,
-            borderRadius: 20,
-            backgroundColor: colors.bgCard,
-            borderColor: colors.bgCardBorder,
-            borderWidth: 0.5,
-            padding: SPACING.xl,
+            width: 56,
+            height: 56,
+            borderRadius: 999,
+            borderWidth: 1,
+            borderColor: colors.accentBorder,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: colors.accentBg,
           }}
         >
-          <AppLogo size="hero" />
-          <Text
-            style={[
-              FONTS.black,
-              {
-                color: colors.textPrimary,
-                fontSize: 18,
-                marginTop: SPACING.lg,
-              },
-            ]}
+          <View
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 999,
+              borderWidth: 1,
+              borderColor: colors.accentBorder,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
-            {i18n.t('onboarding.welcomeTitle')}
-          </Text>
+            <View
+              style={{
+                width: 14,
+                height: 14,
+                borderRadius: 999,
+                backgroundColor: colors.accent,
+              }}
+            />
+          </View>
+        </View>
+
+        <View style={{ alignItems: 'center', marginTop: SPACING.xl, gap: 8 }}>
+          <AppLogo size="hero" />
           <Text
             style={[
               FONTS.regular,
               {
-                color: colors.textSecondary,
+                color: colors.textMuted,
                 fontSize: 13,
-                marginTop: SPACING.sm,
+                textAlign: 'center',
               },
             ]}
           >
-            {i18n.t('onboarding.welcomeBody')}
-          </Text>
-        </View>
-
-        <Card>
-          <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 13 }]}>
             {i18n.t('app.tagline')}
           </Text>
-        </Card>
+        </View>
       </View>
 
       <View style={{ gap: SPACING.md }}>
-        <Button label={i18n.t('common.continue')} onPress={() => router.push('/setup')} />
+        <View style={{ gap: 6 }}>
+          <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 18 }]}>
+            {i18n.t('onboarding.heroLineOne')}
+          </Text>
+          <Text style={[FONTS.black, { color: colors.accent, fontSize: 18 }]}>
+            {i18n.t('onboarding.heroLineTwo')}
+          </Text>
+        </View>
+
+        <Button label={i18n.t('onboarding.startCta')} onPress={() => router.push('/setup')} />
+
         {__DEV__ ? (
           <Button
             label={i18n.t('onboarding.devSkip')}
@@ -83,7 +99,11 @@ export default function WelcomeScreen() {
               router.replace('/');
             }}
           />
-        ) : null}
+        ) : (
+          <Text style={[FONTS.regular, { color: colors.textMuted, fontSize: 13, textAlign: 'center' }]}>
+            {i18n.t('onboarding.secondaryLink')} →
+          </Text>
+        )}
       </View>
     </View>
   );

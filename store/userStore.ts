@@ -12,11 +12,17 @@ interface UserState {
   reminderEnabled: boolean;
   reminderHour: number;
   reminderMinute: number;
+  milestoneNotificationsEnabled: boolean;
+  motivationNotificationsEnabled: boolean;
   language: AppLanguage;
   theme: AppTheme;
   setProfile: (profile: UserProfile) => void;
   completeOnboarding: () => void;
   setReminder: (enabled: boolean, hour: number, minute: number) => void;
+  setNotificationPreferences: (values: {
+    milestoneNotificationsEnabled?: boolean;
+    motivationNotificationsEnabled?: boolean;
+  }) => void;
   setLanguage: (language: AppLanguage) => void;
   setTheme: (theme: AppTheme) => void;
   setHasHydrated: (value: boolean) => void;
@@ -31,12 +37,15 @@ export const useUserStore = create<UserState>()(
       reminderEnabled: true,
       reminderHour: 19,
       reminderMinute: 0,
+      milestoneNotificationsEnabled: true,
+      motivationNotificationsEnabled: true,
       language: 'fr',
       theme: 'system',
       setProfile: (profile) => set({ profile }),
       completeOnboarding: () => set({ hasCompletedOnboarding: true }),
       setReminder: (enabled, hour, minute) =>
         set({ reminderEnabled: enabled, reminderHour: hour, reminderMinute: minute }),
+      setNotificationPreferences: (values) => set(values),
       setLanguage: (language) => set({ language }),
       setTheme: (theme) => set({ theme }),
       setHasHydrated: (value) => set({ hasHydrated: value }),

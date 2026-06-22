@@ -9,6 +9,7 @@ export interface UserProfile {
   lastCigaretteAt: string;
   cigarettesPerDay: number;
   packPrice: number;
+  motivations?: string[];
 }
 
 export interface CounterBreakdown {

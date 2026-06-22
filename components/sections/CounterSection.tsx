@@ -1,4 +1,4 @@
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter';
 import { Card } from '@/components/ui/Card';
@@ -7,12 +7,40 @@ import { useTheme } from '@/hooks/useTheme';
 import { i18n } from '@/services/i18n';
 
 interface CounterSectionProps {
-  value: string;
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+  onRelapsePress?: () => void;
 }
 
-export function CounterSection({ value }: CounterSectionProps) {
+function StatChip({ label, value }: { label: string; value: string }) {
   const { colors } = useTheme();
-  const segments = value.split(' ');
+
+  return (
+    <View
+      style={{
+        borderRadius: 6,
+        backgroundColor: colors.accentBg,
+        paddingHorizontal: 7,
+        paddingVertical: 2,
+      }}
+    >
+      <Text style={[FONTS.bold, { fontSize: 11, color: colors.accentSoft }]}>
+        {value} {label}
+      </Text>
+    </View>
+  );
+}
+
+export function CounterSection({
+  days,
+  hours,
+  minutes,
+  seconds,
+  onRelapsePress,
+}: CounterSectionProps) {
+  const { colors } = useTheme();
 
   return (
     <Card
@@ -21,24 +49,18 @@ export function CounterSection({ value }: CounterSectionProps) {
         borderColor: colors.bgCardBorder,
         paddingHorizontal: 16,
         paddingVertical: 16,
+        gap: 14,
       }}
     >
-      <View style={{ gap: 8 }}>
-        <Text
-          style={[
-            FONTS.bold,
-            {
-              color: colors.textMuted,
-              fontSize: 9,
-              letterSpacing: 2,
-              textTransform: 'uppercase',
-            },
-          ]}
-        >
-          {i18n.t('home.hero')}
-        </Text>
+      <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+        <StatChip label="jours" value={String(days)} />
+        <StatChip label="h" value={String(hours)} />
+        <StatChip label="min" value={String(minutes)} />
+      </View>
+
+      <View style={{ gap: 2 }}>
         <AnimatedCounter
-          value={segments[0] ?? value}
+          value={String(seconds).padStart(2, '0')}
           textStyle={[
             FONTS.black,
             {
@@ -49,63 +71,44 @@ export function CounterSection({ value }: CounterSectionProps) {
             },
           ]}
         />
-        <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-          {segments.slice(1).map((segment) => (
-            <Text
-              key={segment}
-              style={[FONTS.bold, { color: colors.textPrimary, fontSize: 13 }]}
-            >
-              {segment}
-            </Text>
-          ))}
-        </View>
+        <Text
+          style={[
+            FONTS.bold,
+            {
+              color: colors.textMuted,
+              fontSize: 8,
+              letterSpacing: 2,
+              textTransform: 'uppercase',
+            },
+          ]}
+        >
+          {i18n.t('home.smokeFreeLabel')}
+        </Text>
       </View>
-      <View style={{ flexDirection: 'row', gap: 8, marginTop: 14 }}>
-        {['J', 'H', 'M', 'S'].map((label) => (
-          <View
-            key={label}
-            style={{
-              backgroundColor: colors.accentBg,
-              borderRadius: 6,
-              paddingHorizontal: 7,
-              paddingVertical: 2,
-            }}
-          >
-            <Text style={[FONTS.bold, { fontSize: 11, color: colors.accentSoft }]}>{label}</Text>
-          </View>
-        ))}
-      </View>
+
       <View
         style={{
-          marginTop: 16,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
           borderTopWidth: 0.5,
           borderTopColor: colors.divider,
           paddingTop: 12,
-          flexDirection: 'row',
-          justifyContent: 'space-between',
         }}
       >
         <View>
           <Text style={[FONTS.bold, { fontSize: 8, color: colors.textMuted, letterSpacing: 1.2 }]}>
-            Focus
+            {i18n.t('home.liveLabel')}
           </Text>
           <Text style={[FONTS.regular, { fontSize: 13, color: colors.textSecondary, marginTop: 4 }]}>
-            Chaque seconde compte.
+            {i18n.t('home.liveBody')}
           </Text>
         </View>
-        <View
-          style={{
-            backgroundColor: colors.accentBg,
-            borderWidth: 1,
-            borderColor: colors.accentBorder,
-            borderRadius: 999,
-            paddingHorizontal: 10,
-            paddingVertical: 6,
-            alignSelf: 'flex-start',
-          }}
-        >
-          <Text style={[FONTS.bold, { fontSize: 8, color: colors.accent }]}>Live</Text>
-        </View>
+        <Pressable onPress={onRelapsePress} style={{ paddingVertical: 6, paddingHorizontal: 4 }}>
+          <Text style={[FONTS.regular, { color: colors.textMuted, fontSize: 11 }]}>
+            {i18n.t('home.relapseLink')}
+          </Text>
+        </Pressable>
       </View>
     </Card>
   );

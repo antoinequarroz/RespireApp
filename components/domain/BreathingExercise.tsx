@@ -9,9 +9,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { FONTS } from '@/constants/theme';
+import { FONTS, RADII } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { i18n } from '@/services/i18n';
 
@@ -24,7 +22,7 @@ const phases = ['inhale', 'hold', 'exhale'] as const;
 export function BreathingExercise({ onComplete }: BreathingExerciseProps) {
   const { colors } = useTheme();
   const [phaseIndex, setPhaseIndex] = useState(0);
-  const [cycles, setCycles] = useState(0);
+  const [cycles, setCycles] = useState(1);
   const [countdown, setCountdown] = useState(4);
   const scale = useSharedValue(0.85);
 
@@ -49,8 +47,9 @@ export function BreathingExercise({ onComplete }: BreathingExerciseProps) {
         if (next === 0) {
           setCycles((value) => {
             const nextValue = value + 1;
-            if (nextValue >= 4) {
+            if (nextValue > 4) {
               onComplete();
+              return value;
             }
             return nextValue;
           });
@@ -72,7 +71,18 @@ export function BreathingExercise({ onComplete }: BreathingExerciseProps) {
   const phaseLabel = useMemo(() => i18n.t(`sosScreen.${phases[phaseIndex]}`), [phaseIndex]);
 
   return (
-    <Card style={{ alignItems: 'center', backgroundColor: 'transparent', borderColor: 'transparent' }}>
+    <View
+      style={{
+        borderRadius: RADII.lg,
+        backgroundColor: colors.bgCard,
+        borderWidth: 0.5,
+        borderColor: colors.bgCardBorder,
+        paddingHorizontal: 18,
+        paddingVertical: 22,
+        alignItems: 'center',
+        gap: 18,
+      }}
+    >
       <View
         style={{
           width: 100,
@@ -128,15 +138,32 @@ export function BreathingExercise({ onComplete }: BreathingExerciseProps) {
         </View>
       </View>
 
-      <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 13, marginTop: 18 }]}>
-        {cycles}/4 {i18n.t('sosScreen.cycles')}
+      <View style={{ alignItems: 'center', gap: 6 }}>
+        <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 18 }]}>
+          {i18n.t('sosScreen.strongCraving')}
+        </Text>
+        <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 13, textAlign: 'center' }]}>
+          {i18n.t('sosScreen.strongCravingBody')}
+        </Text>
+      </View>
+
+      <View style={{ flexDirection: 'row', gap: 8, alignSelf: 'stretch', justifyContent: 'center' }}>
+        {[0, 1, 2].map((index) => (
+          <View
+            key={index}
+            style={{
+              flex: 1,
+              height: 3,
+              borderRadius: RADII.full,
+              backgroundColor: index === 0 ? colors.accent : colors.dividerStrong,
+            }}
+          />
+        ))}
+      </View>
+
+      <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 12 }]}>
+        {i18n.t('sosScreen.cycleCount', { current: cycles, total: 4 })}
       </Text>
-      <Button
-        label={i18n.t('sosScreen.restart')}
-        variant="secondary"
-        style={{ alignSelf: 'stretch', marginTop: 16 }}
-        onPress={onComplete}
-      />
-    </Card>
+    </View>
   );
 }

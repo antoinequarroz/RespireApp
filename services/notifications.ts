@@ -34,6 +34,11 @@ export async function requestNotificationPermission() {
   return next.granted;
 }
 
+export async function getNotificationPermissionStatus() {
+  const current = await Notifications.getPermissionsAsync();
+  return current.granted;
+}
+
 export async function syncDailyReminder(enabled: boolean, hour: number, minute: number) {
   await Notifications.cancelScheduledNotificationAsync(DAILY_REMINDER_ID).catch(() => undefined);
 

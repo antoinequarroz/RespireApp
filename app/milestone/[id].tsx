@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect } from 'react';
-import { Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -9,9 +9,11 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+import { AppLogo } from '@/components/ui/AppLogo';
 import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
 import { MILESTONES } from '@/constants/milestones';
-import { FONTS, SPACING } from '@/constants/theme';
+import { FONTS, RADII, SPACING } from '@/constants/theme';
 import { useSavings } from '@/hooks/useSavings';
 import { useTheme } from '@/hooks/useTheme';
 import { i18n } from '@/services/i18n';
@@ -35,17 +37,25 @@ export default function MilestoneScreen() {
     transform: [{ scale: scale.value }],
   }));
 
+  const stats = [
+    { value: milestone.labelFr, label: i18n.t('milestone.badgeLabel') },
+    { value: moneySavedFormatted, label: i18n.t('milestone.savingsLabel') },
+    { value: i18n.t('milestone.prideValue'), label: i18n.t('milestone.prideLabel') },
+  ];
+
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: 'center',
-        backgroundColor: colors.bgDeep,
+    <ScrollView
+      style={{ flex: 1, backgroundColor: colors.bgDeep }}
+      contentContainerStyle={{
         paddingHorizontal: SPACING.xl,
+        paddingTop: SPACING.xxl + 8,
+        paddingBottom: SPACING.xxl,
+        alignItems: 'center',
       }}
     >
-      <View style={{ alignItems: 'center' }}>
-        <Text style={{ fontSize: 22, marginBottom: 18 }}>🎉 ⭐ 🎊</Text>
+      <View style={{ width: '100%', alignItems: 'center' }}>
+        <AppLogo size="header" />
+        <Text style={{ fontSize: 22, marginTop: 16, marginBottom: 18 }}>🎉 ⭐ 🎊</Text>
 
         <Animated.View
           style={[
@@ -92,65 +102,91 @@ export default function MilestoneScreen() {
             },
           ]}
         >
-          Tu viens de verrouiller un cap visible. C est le moment qui doit donner envie de continuer.
+          {i18n.t('milestone.subtitle')}
         </Text>
 
-        <View style={{ flexDirection: 'row', gap: 10, marginTop: 24 }}>
-          <View
-            style={{
-              minWidth: 90,
-              borderRadius: 10,
-              backgroundColor: colors.bgCard,
-              paddingHorizontal: 12,
-              paddingVertical: 12,
-              alignItems: 'center',
-            }}
+        <Card
+          style={{
+            width: '100%',
+            marginTop: 24,
+            backgroundColor: colors.accentBg,
+            borderColor: colors.accentBorder,
+            borderWidth: 1,
+            gap: 10,
+          }}
+        >
+          <Text
+            style={[
+              FONTS.bold,
+              {
+                color: colors.accent,
+                fontSize: 8,
+                letterSpacing: 1.5,
+                textTransform: 'uppercase',
+              },
+            ]}
           >
-            <Text style={[FONTS.black, { color: colors.accent, fontSize: 15 }]}>{milestone.labelFr}</Text>
-            <Text style={[FONTS.bold, { color: colors.textMuted, fontSize: 8 }]}>badge</Text>
-          </View>
-          <View
-            style={{
-              minWidth: 90,
-              borderRadius: 10,
-              backgroundColor: colors.bgCard,
-              paddingHorizontal: 12,
-              paddingVertical: 12,
-              alignItems: 'center',
-            }}
-          >
-            <Text style={[FONTS.black, { color: colors.accent, fontSize: 15 }]}>
-              {moneySavedFormatted}
-            </Text>
-            <Text style={[FONTS.bold, { color: colors.textMuted, fontSize: 8 }]}>economies</Text>
-          </View>
-          <View
-            style={{
-              minWidth: 90,
-              borderRadius: 10,
-              backgroundColor: colors.bgCard,
-              paddingHorizontal: 12,
-              paddingVertical: 12,
-              alignItems: 'center',
-            }}
-          >
-            <Text style={[FONTS.black, { color: colors.accent, fontSize: 15 }]}>100%</Text>
-            <Text style={[FONTS.bold, { color: colors.textMuted, fontSize: 8 }]}>fierte</Text>
-          </View>
+            {i18n.t('milestone.shareLabel')}
+          </Text>
+          <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 18 }]}>
+            {i18n.t('milestone.shareTitle')}
+          </Text>
+          <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 13 }]}>
+            {i18n.t('milestone.shareBody')}
+          </Text>
+        </Card>
+
+        <View style={{ flexDirection: 'row', gap: 10, marginTop: 18, width: '100%' }}>
+          {stats.map((item) => (
+            <View
+              key={item.label}
+              style={{
+                flex: 1,
+                borderRadius: 10,
+                backgroundColor: colors.bgCard,
+                borderWidth: 0.5,
+                borderColor: colors.bgCardBorder,
+                paddingHorizontal: 10,
+                paddingVertical: 12,
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: 76,
+              }}
+            >
+              <Text
+                style={[FONTS.black, { color: colors.accent, fontSize: 15, textAlign: 'center' }]}
+                numberOfLines={2}
+              >
+                {item.value}
+              </Text>
+              <Text
+                style={[FONTS.bold, { color: colors.textMuted, fontSize: 8, marginTop: 6, textAlign: 'center' }]}
+              >
+                {item.label}
+              </Text>
+            </View>
+          ))}
         </View>
 
         <Button
           label={`${i18n.t('milestone.shareTikTok')} 🎵`}
-          style={{ alignSelf: 'stretch', marginTop: 28 }}
+          style={{ alignSelf: 'stretch', marginTop: 28, width: '100%' }}
           onPress={() => router.back()}
         />
-        <Text
-          style={[FONTS.regular, { color: colors.textMuted, fontSize: 9, marginTop: 16 }]}
+        <Pressable
           onPress={() => router.back()}
+          style={{
+            marginTop: 16,
+            borderRadius: RADII.full,
+            paddingHorizontal: 12,
+            paddingVertical: 6,
+          }}
         >
-          {i18n.t('milestone.cta')} →
-        </Text>
+          <Text style={[FONTS.regular, { color: colors.textMuted, fontSize: 9 }]}>
+            {i18n.t('milestone.cta')} →
+          </Text>
+        </Pressable>
       </View>
-    </View>
+    </ScrollView>
   );
 }

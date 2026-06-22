@@ -1,12 +1,13 @@
 import { useRouter } from 'expo-router';
 import { Text, View } from 'react-native';
 
-import { AppLogo } from '@/components/ui/AppLogo';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { FONTS, SPACING } from '@/constants/theme';
+import { useCounter } from '@/hooks/useCounter';
 import { useSavings } from '@/hooks/useSavings';
 import { useTheme } from '@/hooks/useTheme';
+import { getAvoidedCigarettes } from '@/services/calculations';
 import { i18n } from '@/services/i18n';
 import { useUserStore } from '@/store/userStore';
 
@@ -16,6 +17,14 @@ export default function ReadyScreen() {
   const profile = useUserStore((state) => state.profile);
   const completeOnboarding = useUserStore((state) => state.completeOnboarding);
   const { moneySavedFormatted } = useSavings();
+  const counter = useCounter();
+  const cigarettesAvoided = getAvoidedCigarettes(profile?.lastCigaretteAt, profile?.cigarettesPerDay);
+
+  const stats = [
+    { value: moneySavedFormatted, label: i18n.t('onboarding.readyStatSavings') },
+    { value: String(cigarettesAvoided), label: i18n.t('onboarding.readyStatAvoided') },
+    { value: `+${counter.days}j`, label: i18n.t('onboarding.readyStatTime') },
+  ];
 
   return (
     <View
@@ -27,43 +36,65 @@ export default function ReadyScreen() {
         paddingVertical: SPACING.xxl,
       }}
     >
-      <View style={{ gap: SPACING.xl }}>
-        <AppLogo size="header" />
-        <View style={{ gap: SPACING.sm }}>
-          <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 18 }]}>
-            {i18n.t('onboarding.readyTitle')}
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <View
+          style={{
+            width: 72,
+            height: 72,
+            borderRadius: 999,
+            borderWidth: 2,
+            borderColor: colors.emerald,
+            backgroundColor: colors.emeraldBg,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Text style={[FONTS.black, { color: colors.emerald, fontSize: 28 }]}>✓</Text>
+        </View>
+
+        <View style={{ marginTop: SPACING.xl, alignItems: 'center', gap: 8 }}>
+          <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 18, textAlign: 'center' }]}>
+            {i18n.t('onboarding.readyHeroTitle')}
           </Text>
-          <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 13 }]}>
-            {i18n.t('onboarding.readyBody')}
+          <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 13, textAlign: 'center' }]}>
+            {i18n.t('onboarding.readyHeroBody')}
           </Text>
         </View>
-        <Card>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            <Text style={[FONTS.bold, { color: colors.textMuted, fontSize: 9 }]}>
-              Cigarettes / jour
-            </Text>
-            <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 15 }]}>
-              {profile?.cigarettesPerDay}
-            </Text>
-          </View>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: SPACING.md }}>
-            <Text style={[FONTS.bold, { color: colors.textMuted, fontSize: 9 }]}>
-              Economies
-            </Text>
-            <Text style={[FONTS.black, { color: colors.emerald, fontSize: 15 }]}>
-              {moneySavedFormatted}
-            </Text>
-          </View>
-        </Card>
       </View>
 
-      <Button
-        label={i18n.t('onboarding.start')}
-        onPress={() => {
-          completeOnboarding();
-          router.replace('/');
-        }}
-      />
+      <View style={{ gap: SPACING.md }}>
+        <Card>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 10 }}>
+            {stats.map((item) => (
+              <View key={item.label} style={{ flex: 1, alignItems: 'center' }}>
+                <Text style={[FONTS.black, { color: colors.accent, fontSize: 18 }]} numberOfLines={1}>
+                  {item.value}
+                </Text>
+                <Text
+                  style={[
+                    FONTS.regular,
+                    { color: colors.textMuted, fontSize: 10, textAlign: 'center', marginTop: 4 },
+                  ]}
+                >
+                  {item.label}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </Card>
+
+        <Button
+          label={i18n.t('onboarding.start')}
+          onPress={() => {
+            completeOnboarding();
+            router.replace('/');
+          }}
+        />
+
+        <Text style={[FONTS.regular, { color: colors.textMuted, fontSize: 11, textAlign: 'center' }]}>
+          {profile?.cigarettesPerDay} {i18n.t('onboarding.cigarettesUnit')} • {profile?.packPrice} EUR
+        </Text>
+      </View>
     </View>
   );
 }
