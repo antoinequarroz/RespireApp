@@ -1,5 +1,19 @@
 import { type Href, useRouter } from 'expo-router';
-import { Pressable, Text, View } from 'react-native';
+import { useRef, useState } from 'react';
+import {
+  Dimensions,
+  FlatList,
+  Pressable,
+  Text,
+  View,
+  type ViewToken,
+} from 'react-native';
+import Animated, {
+  FadeIn,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 
 import { AppLogo } from '@/components/ui/AppLogo';
 import { Button } from '@/components/ui/Button';
@@ -8,43 +22,100 @@ import { useTheme } from '@/hooks/useTheme';
 import { i18n } from '@/services/i18n';
 import { useUserStore } from '@/store/userStore';
 
-function HeroRings() {
-  const { colors } = useTheme('dark');
+const { width: SCREEN_W } = Dimensions.get('window');
 
+interface Slide {
+  key: string;
+  emoji: string;
+  title: string;
+  body: string;
+  accent?: boolean;
+}
+
+const SLIDES: Slide[] = [
+  {
+    key: 'hero',
+    emoji: '🫁',
+    title: 'Le dernier. Pour de vrai.',
+    body: 'Respire mesure chaque seconde sans tabac, te montre l\'argent récupéré et marque chaque victoire.',
+    accent: true,
+  },
+  {
+    key: 'counter',
+    emoji: '⏱️',
+    title: 'Un compteur qui ne ment pas.',
+    body: 'Secondes, minutes, jours, argent économisé — tout en temps réel, calculé depuis ta dernière cigarette.',
+  },
+  {
+    key: 'health',
+    emoji: '❤️',
+    title: 'Ton corps se répare dès maintenant.',
+    body: 'En 20 minutes, ta tension baisse. En 24h, ton risque d\'infarctus diminue. Chaque heure compte.',
+  },
+  {
+    key: 'sos',
+    emoji: '🧘',
+    title: 'Une envie ? Respire.',
+    body: 'En cas de craving, le mode SOS te guide en moins de 3 minutes. La respiration brise le pic.',
+  },
+];
+
+function SlideCard({ slide, colors }: { slide: Slide; colors: ReturnType<typeof useTheme>['colors'] }) {
   return (
-    <View style={{ width: 220, height: 220, alignItems: 'center', justifyContent: 'center' }}>
-      {[130, 108, 86, 64].map((size, index) => (
-        <View
-          key={size}
-          style={{
-            position: 'absolute',
-            width: size,
-            height: size,
-            borderRadius: size / 2,
-            borderWidth: index === 3 ? 2 : 1,
-            borderColor: index === 3 ? colors.accent : colors.accentBorder,
-            opacity: index === 3 ? 0.75 : 0.6 - index * 0.1,
-          }}
-        />
-      ))}
+    <View
+      style={{
+        width: SCREEN_W,
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 36,
+        gap: 24,
+      }}
+    >
+      {/* Emoji dans un cercle */}
       <View
         style={{
-          width: 58,
-          height: 58,
-          borderRadius: 29,
-          backgroundColor: colors.accentBg,
+          width: 120,
+          height: 120,
+          borderRadius: 60,
+          backgroundColor: slide.accent ? colors.accentBg : colors.bgCard,
+          borderWidth: 1.5,
+          borderColor: slide.accent ? colors.accentBorder : colors.bgCardBorder,
           alignItems: 'center',
           justifyContent: 'center',
         }}
       >
-        <View
-          style={{
-            width: 18,
-            height: 18,
-            borderRadius: RADII.full,
-            backgroundColor: colors.accent,
-          }}
-        />
+        <Text style={{ fontSize: 52 }}>{slide.emoji}</Text>
+      </View>
+
+      <View style={{ alignItems: 'center', gap: 10 }}>
+        <Text
+          style={[
+            FONTS.black,
+            {
+              color: slide.accent ? colors.accent : colors.textPrimary,
+              fontSize: 26,
+              textAlign: 'center',
+              lineHeight: 30,
+            },
+          ]}
+        >
+          {slide.title}
+        </Text>
+        <Text
+          style={[
+            FONTS.regular,
+            {
+              color: colors.textSecondary,
+              fontSize: 15,
+              textAlign: 'center',
+              lineHeight: 22,
+              maxWidth: 300,
+            },
+          ]}
+        >
+          {slide.body}
+        </Text>
       </View>
     </View>
   );
@@ -57,30 +128,24 @@ export default function WelcomeScreen() {
   const setProfile = useUserStore((state) => state.setProfile);
   const setOnboardingDraft = useUserStore((state) => state.setOnboardingDraft);
   const completeOnboarding = useUserStore((state) => state.completeOnboarding);
+  const listRef = useRef<FlatList>(null);
 
-  const features = [
-    {
-      emoji: '⏱️',
-      title: i18n.t('onboarding.pitchCounter'),
-      body: 'Secondes, minutes, jours',
-      bg: colors.accentBg,
-      border: colors.accentBorder,
-    },
-    {
-      emoji: '💰',
-      title: i18n.t('onboarding.pitchMoney'),
-      body: 'Calcule en temps réel',
-      bg: colors.emeraldBg,
-      border: colors.emeraldBorder,
-    },
-    {
-      emoji: '🧘',
-      title: i18n.t('onboarding.pitchSos'),
-      body: 'Exercice de respiration',
-      bg: colors.bgCard,
-      border: colors.bgCardBorder,
-    },
-  ];
+  const [activeIndex, setActiveIndex] = useState(0);
+  const isLast = activeIndex === SLIDES.length - 1;
+
+  const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
+    if (viewableItems[0]?.index != null) {
+      setActiveIndex(viewableItems[0].index);
+    }
+  }).current;
+
+  const goNext = () => {
+    if (isLast) {
+      startOnboarding();
+    } else {
+      listRef.current?.scrollToIndex({ index: activeIndex + 1, animated: true });
+    }
+  };
 
   const startOnboarding = () => {
     setOnboardingDraft(
@@ -97,117 +162,88 @@ export default function WelcomeScreen() {
   };
 
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: colors.bgPrimary,
-        paddingHorizontal: 28,
-        paddingTop: 70,
-        paddingBottom: 16,
-      }}
-    >
-      <View style={{ flex: 1 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <View
-            style={{
-              width: 6,
-              height: 6,
-              borderRadius: RADII.full,
-              backgroundColor: colors.accent,
-            }}
-          />
-          <AppLogo size="header" forceScheme="dark" />
-        </View>
-
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 16 }}>
-          <HeroRings />
-          <View style={{ alignItems: 'center', marginTop: 10 }}>
-            <AppLogo size="hero" forceScheme="dark" />
-          </View>
-        </View>
-
-        <View style={{ gap: 18, paddingBottom: 10 }}>
-          <View style={{ gap: 2, alignItems: 'flex-start' }}>
-            <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 30, lineHeight: 33 }]}>
-              {i18n.t('onboarding.heroLineOne')}
-            </Text>
-            <Text style={[FONTS.black, { color: colors.accent, fontSize: 30, lineHeight: 33 }]}>
-              {i18n.t('onboarding.heroLineTwo')}
-            </Text>
-          </View>
-
-          <View style={{ gap: 10 }}>
-            {features.map((feature) => (
-              <View
-                key={feature.title}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 12,
-                  borderRadius: 13,
-                  borderWidth: 0.5,
-                  borderColor: feature.border,
-                  backgroundColor: colors.bgCard,
-                  paddingHorizontal: 12,
-                  paddingVertical: 11,
-                }}
-              >
-                <View
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 12,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: feature.bg,
-                    borderWidth: 0.5,
-                    borderColor: feature.border,
-                  }}
-                >
-                  <Text style={{ fontSize: 20 }}>{feature.emoji}</Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[FONTS.bold, { color: colors.textPrimary, fontSize: 12 }]}>
-                    {feature.title}
-                  </Text>
-                  <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 10, marginTop: 1 }]}>
-                    {feature.body}
-                  </Text>
-                </View>
-              </View>
-            ))}
-          </View>
-
-          <Button label={i18n.t('onboarding.startCta')} onPress={startOnboarding} />
-
-          {__DEV__ ? (
-            <Button
-              label={i18n.t('onboarding.devSkip')}
-              variant="ghost"
-              onPress={() => {
-                const now = new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString();
-                setProfile({
-                  productType: 'cigarette',
-                  currency: 'EUR',
-                  lastCigaretteAt: now,
-                  cigarettesPerDay: 12,
-                  packPrice: 11.5,
-                  motivations: [],
-                });
-                completeOnboarding();
-                router.replace('/(tabs)');
-              }}
-            />
-          ) : (
-            <Pressable onPress={startOnboarding}>
-              <Text style={[FONTS.regular, { color: colors.textMuted, fontSize: 12, textAlign: 'center' }]}> 
-                {i18n.t('onboarding.secondaryLink')} →
-              </Text>
-            </Pressable>
-          )}
-        </View>
+    <View style={{ flex: 1, backgroundColor: colors.bgPrimary, paddingTop: 60, paddingBottom: 20 }}>
+      {/* Logo header */}
+      <View style={{ paddingHorizontal: 28, flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+        <View style={{ width: 6, height: 6, borderRadius: RADII.full, backgroundColor: colors.accent }} />
+        <AppLogo size="header" forceScheme="dark" />
       </View>
 
+      {/* Slides */}
+      <FlatList
+        ref={listRef}
+        data={SLIDES}
+        keyExtractor={(s) => s.key}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={{ itemVisiblePercentThreshold: 60 }}
+        renderItem={({ item }) => <SlideCard slide={item} colors={colors} />}
+        style={{ flex: 1 }}
+      />
+
+      {/* Dots */}
+      <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 6, marginBottom: 24 }}>
+        {SLIDES.map((_, i) => (
+          <View
+            key={i}
+            style={{
+              width: i === activeIndex ? 20 : 6,
+              height: 6,
+              borderRadius: RADII.full,
+              backgroundColor: i === activeIndex ? colors.accent : colors.dividerStrong,
+            }}
+          />
+        ))}
+      </View>
+
+      {/* CTA */}
+      <View style={{ paddingHorizontal: 28, gap: 12 }}>
+        <Button
+          label={isLast ? i18n.t('onboarding.startCta') : 'Suivant'}
+          onPress={goNext}
+        />
+
+        {isLast ? (
+          <Pressable onPress={startOnboarding} style={{ alignSelf: 'center', paddingVertical: 6 }}>
+            <Text style={[FONTS.regular, { color: colors.textMuted, fontSize: 12, textAlign: 'center' }]}>
+              {i18n.t('onboarding.secondaryLink')} →
+            </Text>
+          </Pressable>
+        ) : (
+          <Pressable onPress={startOnboarding} style={{ alignSelf: 'center', paddingVertical: 6 }}>
+            <Text style={[FONTS.regular, { color: colors.textMuted, fontSize: 12, textAlign: 'center' }]}>
+              Passer l'intro →
+            </Text>
+          </Pressable>
+        )}
+
+        {__DEV__ ? (
+          <Pressable
+            onPress={() => {
+              const now = new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString();
+              setProfile({
+                productType: 'cigarette',
+                currency: 'EUR',
+                lastCigaretteAt: now,
+                cigarettesPerDay: 12,
+                packPrice: 11.5,
+                motivations: [],
+              });
+              completeOnboarding();
+              router.replace('/(tabs)');
+            }}
+            style={{ alignSelf: 'center', paddingVertical: 4 }}
+          >
+            <Text style={[FONTS.regular, { color: colors.textMuted, fontSize: 10 }]}>
+              {i18n.t('onboarding.devSkip')}
+            </Text>
+          </Pressable>
+        ) : null}
+      </View>
+
+      {/* Home indicator */}
       <View
         style={{
           alignSelf: 'center',
@@ -215,7 +251,7 @@ export default function WelcomeScreen() {
           height: 4,
           borderRadius: RADII.full,
           backgroundColor: colors.homeIndicator,
-          marginTop: 18,
+          marginTop: 12,
         }}
       />
     </View>

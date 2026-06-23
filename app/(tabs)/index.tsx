@@ -55,8 +55,17 @@ export default function HomeScreen() {
   const avoided = getAvoidedCigarettes(profile?.lastCigaretteAt, profile?.cigarettesPerDay, productType);
 
   useEffect(() => {
-    updateWidgetSnapshot({ smokeFreeDays: counter.days, moneySaved }).catch(() => undefined);
-  }, [counter.days, moneySaved]);
+    const nextMilestone = next;
+    const pct = Math.round(progress * 100);
+
+    updateWidgetSnapshot({
+      smokeFreeDays: counter.days,
+      moneySaved,
+      cigarettesAvoided: avoided,
+      nextMilestoneLabel: nextMilestone?.labelFr ?? '—',
+      nextMilestonePercent: pct,
+    }).catch(() => undefined);
+  }, [counter.days, moneySaved, avoided, next, progress]);
 
   const nextHealthDelay = useMemo(
     () => formatTimeUntil(health.next.targetMs, counter.totalMs),
