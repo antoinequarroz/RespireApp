@@ -14,10 +14,15 @@ import { useEffect } from 'react';
 import { AppState, useColorScheme as useNativeColorScheme, View } from 'react-native';
 
 import { DARK, LIGHT } from '@/constants/theme';
+import { computeUserLevel } from '@/hooks/useUserLevel';
+import { useCloudSync } from '@/hooks/useCloudSync';
 import { useMilestones } from '@/hooks/useMilestones';
 import { useSavings } from '@/hooks/useSavings';
 import { useTheme } from '@/hooks/useTheme';
+import { useWeeklyChallenge } from '@/hooks/useWeeklyChallenge';
 import { configureI18n } from '@/services/i18n';
+import { useAuthStore } from '@/store/authStore';
+import { canShowDailyMotivation, markMotivationShownToday } from '@/services/motivation';
 import {
   configureNotificationChannel,
   getNotificationPermissionStatus,
@@ -50,8 +55,7 @@ export default function RootLayout() {
   const reminderMinute = useUserStore((state) => state.reminderMinute);
   const milestoneNotificationsEnabled = useUserStore((state) => state.milestoneNotificationsEnabled);
   const motivationNotificationsEnabled = useUserStore((state) => state.motivationNotificationsEnabled);
-  const rewardGoalLabel = useUserStore((state) => state.rewardGoalLabel);
-  const rewardGoalAmount = useUserStore((state) => state.rewardGoalAmount);
+  const rewardGoals = useUserStore((state) => state.rewardGoals);
   const { setColorScheme } = useColorScheme();
   const nativeScheme = useNativeColorScheme();
   const { colors, isDark } = useTheme();
@@ -61,11 +65,26 @@ export default function RootLayout() {
   );
   const registerAppOpen = useProgressStore((state) => state.registerAppOpen);
   const markMilestoneCelebrated = useProgressStore((state) => state.markMilestoneCelebrated);
-  const celebratedRewardGoalKey = useProgressStore((state) => state.celebratedRewardGoalKey);
+  const celebratedRewardGoalIds = useProgressStore((state) => state.celebratedRewardGoalIds);
   const markRewardGoalCelebrated = useProgressStore((state) => state.markRewardGoalCelebrated);
+  const setUserLevel = useProgressStore((state) => state.setUserLevel);
   const setPremiumStatus = usePremiumStore((state) => state.setPremiumStatus);
   const { nextToCelebrate } = useMilestones();
-  const rewardGoalKey = `${rewardGoalLabel}:${rewardGoalAmount}`;
+
+  // Weekly challenge generation (side-effect hook)
+  useWeeklyChallenge();
+
+  // Cloud sync (no-op if not logged in)
+  useCloudSync();
+
+  // Initialize Supabase auth session
+  const initializeAuth = useAuthStore((s) => s.initialize);
+  useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
+    initializeAuth().then((unsub) => { unsubscribe = unsub; }).catch(() => undefined);
+    return () => unsubscribe?.();
+  }, [initializeAuth]);
+
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
     Poppins_700Bold,
@@ -78,21 +97,14 @@ export default function RootLayout() {
 
   useEffect(() => {
     const resolved =
-      theme === 'system'
-        ? nativeScheme === 'dark'
-          ? 'dark'
-          : 'light'
-        : theme;
+      theme === 'system' ? (nativeScheme === 'dark' ? 'dark' : 'light') : theme;
     setColorScheme(resolved);
   }, [nativeScheme, setColorScheme, theme]);
 
   useEffect(() => {
     initializeRevenueCat()
       .then(async () => {
-        if (!hasRevenueCatConfig()) {
-          return;
-        }
-
+        if (!hasRevenueCatConfig()) return;
         const customerInfo = await getCustomerInfo();
         setPremiumStatus(isPremiumCustomer(customerInfo));
       })
@@ -117,15 +129,10 @@ export default function RootLayout() {
   }, [motivationNotificationsEnabled, reminderEnabled, reminderHour, reminderMinute]);
 
   useEffect(() => {
-    if (!hasHydrated) {
-      return;
-    }
-
+    if (!hasHydrated) return;
     registerAppOpen();
     const subscription = AppState.addEventListener('change', (state) => {
-      if (state === 'active') {
-        registerAppOpen();
-      }
+      if (state === 'active') registerAppOpen();
     });
     return () => subscription.remove();
   }, [hasHydrated, registerAppOpen]);
@@ -136,22 +143,27 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, hasHydrated]);
 
+  // Sync userLevel into progressStore whenever profile changes
+  useEffect(() => {
+    if (!profile) return;
+    const smokeFreeDays = Math.floor(
+      (Date.now() - new Date(profile.lastCigaretteAt).getTime()) / (24 * 60 * 60 * 1000),
+    );
+    const { level } = computeUserLevel(smokeFreeDays);
+    setUserLevel(level);
+  }, [profile, setUserLevel]);
+
+  // Milestone celebration
   useEffect(() => {
     const topSegment = segments[0];
     const inOnboardingGroup = topSegment === '(onboarding)';
-    const inLaunchFlow =
-      pathname === '/' ||
-      pathname === '/sos' ||
-      inOnboardingGroup;
+    const inLaunchFlow = pathname === '/' || pathname === '/sos' || inOnboardingGroup;
     const inMilestone = pathname.startsWith('/milestone/');
 
     if (!hasHydrated || !hasCompletedOnboarding || inLaunchFlow || inMilestone || !nextToCelebrate) {
       return;
     }
-
-    if (AppState.currentState !== 'active') {
-      return;
-    }
+    if (AppState.currentState !== 'active') return;
 
     markMilestoneCelebrated(nextToCelebrate.id);
     router.push(`/milestone/${nextToCelebrate.id}`);
@@ -165,6 +177,7 @@ export default function RootLayout() {
     segments,
   ]);
 
+  // Reward goal celebration
   useEffect(() => {
     const topSegment = segments[0];
     const inOnboardingGroup = topSegment === '(onboarding)';
@@ -175,65 +188,82 @@ export default function RootLayout() {
       pathname === '/reward-achieved' ||
       inOnboardingGroup;
 
-    if (
-      !hasHydrated ||
-      !hasCompletedOnboarding ||
-      inLaunchFlow ||
-      rewardGoalAmount <= 0 ||
-      moneySaved < rewardGoalAmount ||
-      celebratedRewardGoalKey === rewardGoalKey
-    ) {
-      return;
-    }
+    if (!hasHydrated || !hasCompletedOnboarding || inLaunchFlow) return;
+    if (AppState.currentState !== 'active') return;
 
-    if (AppState.currentState !== 'active') {
-      return;
-    }
+    const completedGoal = rewardGoals.find(
+      (goal) =>
+        goal.amount > 0 &&
+        moneySaved >= goal.amount &&
+        !celebratedRewardGoalIds.includes(goal.id),
+    );
+    if (!completedGoal) return;
 
-    markRewardGoalCelebrated(rewardGoalKey);
+    markRewardGoalCelebrated(completedGoal.id);
     router.push('/reward-achieved' as Href);
   }, [
-    celebratedRewardGoalKey,
+    celebratedRewardGoalIds,
     hasCompletedOnboarding,
     hasHydrated,
     markRewardGoalCelebrated,
     moneySaved,
     pathname,
-    rewardGoalAmount,
-    rewardGoalKey,
+    rewardGoals,
     router,
     segments,
   ]);
 
+  // Daily motivation
   useEffect(() => {
-    if (!hasHydrated) {
+    const topSegment = segments[0];
+    const inTabsGroup = topSegment === '(tabs)';
+    const blockedRoute =
+      pathname === '/sos' ||
+      pathname === '/motivation' ||
+      pathname === '/reward' ||
+      pathname === '/reward-achieved' ||
+      pathname.startsWith('/milestone/');
+
+    if (
+      !hasHydrated ||
+      !hasCompletedOnboarding ||
+      !inTabsGroup ||
+      blockedRoute ||
+      useProgressStore.getState().appOpenStreak < 3 ||
+      AppState.currentState !== 'active'
+    ) {
       return;
     }
 
+    const timeout = setTimeout(() => {
+      canShowDailyMotivation()
+        .then((shouldShow) => {
+          if (!shouldShow) return;
+          return markMotivationShownToday().then(() =>
+            router.push(
+              `/motivation?trigger=daily&streak=${useProgressStore.getState().appOpenStreak}` as Href,
+            ),
+          );
+        })
+        .catch(() => undefined);
+    }, 700);
+
+    return () => clearTimeout(timeout);
+  }, [hasCompletedOnboarding, hasHydrated, pathname, router, segments]);
+
+  // Routing guard
+  useEffect(() => {
+    if (!hasHydrated) return;
     const topSegment = segments[0];
     const inOnboardingGroup = topSegment === '(onboarding)';
     const inTabsGroup = topSegment === '(tabs)';
     const isSplashRoute = topSegment == null;
     const inLaunchFlow = isSplashRoute || pathname === '/sos' || inOnboardingGroup;
 
-    if (!hasCompletedOnboarding && !inLaunchFlow) {
-      router.replace('/');
-      return;
-    }
-
-    if (hasCompletedOnboarding && isSplashRoute) {
-      router.replace('/(tabs)');
-      return;
-    }
-
-    if (hasCompletedOnboarding && inOnboardingGroup) {
-      router.replace('/(tabs)');
-      return;
-    }
-
-    if (!hasCompletedOnboarding && inTabsGroup) {
-      router.replace('/');
-    }
+    if (!hasCompletedOnboarding && !inLaunchFlow) { router.replace('/'); return; }
+    if (hasCompletedOnboarding && isSplashRoute) { router.replace('/(tabs)'); return; }
+    if (hasCompletedOnboarding && inOnboardingGroup) { router.replace('/(tabs)'); return; }
+    if (!hasCompletedOnboarding && inTabsGroup) router.replace('/');
   }, [hasCompletedOnboarding, hasHydrated, pathname, router, segments]);
 
   if (!hasHydrated || !fontsLoaded) {
@@ -251,14 +281,7 @@ export default function RootLayout() {
             backgroundColor: colors.accentBg,
           }}
         >
-          <View
-            style={{
-              width: 18,
-              height: 18,
-              borderRadius: 999,
-              backgroundColor: colors.accent,
-            }}
-          />
+          <View style={{ width: 18, height: 18, borderRadius: 999, backgroundColor: colors.accent }} />
         </View>
       </View>
     );
@@ -270,9 +293,7 @@ export default function RootLayout() {
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: {
-            backgroundColor: isDark ? DARK.bgPrimary : LIGHT.bgPrimary,
-          },
+          contentStyle: { backgroundColor: isDark ? DARK.bgPrimary : LIGHT.bgPrimary },
         }}
       >
         <Stack.Screen name="(onboarding)" />
@@ -281,28 +302,34 @@ export default function RootLayout() {
           name="sos"
           options={{
             presentation: 'fullScreenModal',
-            contentStyle: {
-              backgroundColor: isDark ? DARK.bgSos : LIGHT.bgSos,
-            },
+            contentStyle: { backgroundColor: isDark ? DARK.bgSos : LIGHT.bgSos },
           }}
         />
         <Stack.Screen
           name="zen"
           options={{
             presentation: 'fullScreenModal',
-            contentStyle: {
-              backgroundColor: isDark ? DARK.bgSos : LIGHT.bgSos,
-            },
+            contentStyle: { backgroundColor: isDark ? DARK.bgSos : LIGHT.bgSos },
           }}
         />
         <Stack.Screen name="relapse" options={{ presentation: 'transparentModal' }} />
         <Stack.Screen name="reward" options={{ presentation: 'fullScreenModal' }} />
         <Stack.Screen name="reward-achieved" options={{ presentation: 'fullScreenModal' }} />
+        <Stack.Screen
+          name="motivation"
+          options={{ presentation: 'fullScreenModal', contentStyle: { backgroundColor: DARK.bgDeep } }}
+        />
         <Stack.Screen name="paywall" options={{ presentation: 'fullScreenModal' }} />
         <Stack.Screen
           name="milestone/[id]"
           options={{ presentation: 'fullScreenModal', headerShown: false }}
         />
+        <Stack.Screen
+          name="health-timeline"
+          options={{ presentation: 'fullScreenModal' }}
+        />
+        <Stack.Screen name="(auth)/login" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="(auth)/register" options={{ presentation: 'modal' }} />
       </Stack>
     </>
   );

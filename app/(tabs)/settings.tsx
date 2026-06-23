@@ -1,5 +1,5 @@
 import { type Href, useRouter } from 'expo-router';
-import { Monitor, Moon, Sun } from 'lucide-react-native';
+import { Cloud, CloudOff, LogIn, LogOut, Monitor, Moon, Sun, User } from 'lucide-react-native';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { AppLogo } from '@/components/ui/AppLogo';
@@ -9,6 +9,7 @@ import { getProductConfig } from '@/constants/productConfig';
 import { FONTS, RADII, SPACING } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { i18n } from '@/services/i18n';
+import { useAuthStore } from '@/store/authStore';
 import { usePremiumStore } from '@/store/premiumStore';
 import { useUserStore } from '@/store/userStore';
 
@@ -27,6 +28,9 @@ export default function SettingsScreen() {
   const theme = useUserStore((state) => state.theme);
   const setTheme = useUserStore((state) => state.setTheme);
   const isPremium = usePremiumStore((state) => state.isPremium);
+  const user = useAuthStore((s) => s.user);
+  const isSyncing = useAuthStore((s) => s.isSyncing);
+  const signOut = useAuthStore((s) => s.signOut);
 
   const pushSettings = (path: string) => router.push(path as Href);
   const productType = profile?.productType ?? 'cigarette';
@@ -175,6 +179,63 @@ export default function SettingsScreen() {
             label="Phrases sauvegardées"
             onPress={() => pushSettings('/settings/saved-phrases')}
           />
+        </Card>
+      </View>
+
+      {/* Compte & sync */}
+      <View style={{ gap: 6 }}>
+        <Text style={[FONTS.bold, { color: colors.textMuted, ...SECTION_LABEL_STYLE }]}>
+          Compte
+        </Text>
+        <Card style={{ backgroundColor: colors.bgSurface, paddingVertical: 0 }}>
+          {user ? (
+            <>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 14 }}>
+                <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: colors.accentBg, alignItems: 'center', justifyContent: 'center' }}>
+                  <User size={14} color={colors.accent} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[FONTS.bold, { color: colors.textPrimary, fontSize: 13 }]} numberOfLines={1}>
+                    {user.email}
+                  </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
+                    {isSyncing
+                      ? <Cloud size={10} color={colors.accent} />
+                      : <CloudOff size={10} color={colors.textMuted} />}
+                    <Text style={[FONTS.regular, { color: colors.textMuted, fontSize: 10 }]}>
+                      {isSyncing ? 'Synchronisation…' : 'Données synchronisées'}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+              <View style={{ borderTopWidth: 0.5, borderTopColor: colors.divider, marginHorizontal: -12, paddingHorizontal: 12 }}>
+                <Pressable
+                  onPress={signOut}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 14 }}
+                >
+                  <LogOut size={14} color="#EF4444" strokeWidth={1.5} />
+                  <Text style={[FONTS.regular, { color: '#EF4444', fontSize: 13 }]}>Se déconnecter</Text>
+                </Pressable>
+              </View>
+            </>
+          ) : (
+            <Pressable
+              onPress={() => router.push('/(auth)/login' as Href)}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 14 }}
+            >
+              <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: colors.accentBg, alignItems: 'center', justifyContent: 'center' }}>
+                <LogIn size={14} color={colors.accent} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[FONTS.bold, { color: colors.textPrimary, fontSize: 13 }]}>
+                  Connexion / Créer un compte
+                </Text>
+                <Text style={[FONTS.regular, { color: colors.textMuted, fontSize: 11 }]}>
+                  Sync cloud et sauvegarde sur tous tes appareils
+                </Text>
+              </View>
+            </Pressable>
+          )}
         </Card>
       </View>
 
