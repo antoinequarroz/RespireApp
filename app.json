@@ -21,7 +21,7 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.respire.app",
+      "bundleIdentifier": "com.antoinequarroz.respire",
       "deploymentTarget": "16.0",
       "infoPlist": {
         "NSUserNotificationsUsageDescription": "Respire utilise les notifications pour tes rappels quotidiens et milestones.",
@@ -29,7 +29,7 @@
       }
     },
     "android": {
-      "package": "com.respire.app",
+      "package": "com.antoinequarroz.respire",
       "minSdkVersion": 26,
       "adaptiveIcon": {
         "backgroundColor": "#121212",
@@ -78,7 +78,7 @@
       [
         "expo-widgets",
         {
-          "groupIdentifier": "group.com.respire.app",
+          "groupIdentifier": "group.com.antoinequarroz.respire",
           "widgets": [
             {
               "name": "RespireWidget",
@@ -119,10 +119,10 @@
               "appExtensions": [
                 {
                   "targetName": "ExpoWidgetsTarget",
-                  "bundleIdentifier": "com.respire.app.ExpoWidgetsTarget",
+                  "bundleIdentifier": "com.antoinequarroz.respire.ExpoWidgetsTarget",
                   "entitlements": {
                     "com.apple.security.application-groups": [
-                      "group.com.respire.app"
+                      "group.com.antoinequarroz.respire"
                     ]
                   }
                 }
