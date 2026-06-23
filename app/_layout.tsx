@@ -15,6 +15,7 @@ import { AppState, useColorScheme as useNativeColorScheme, View } from 'react-na
 
 import { DARK, LIGHT } from '@/constants/theme';
 import { computeUserLevel } from '@/hooks/useUserLevel';
+import { useBehaviorBadges } from '@/hooks/useBehaviorBadges';
 import { useCloudSync } from '@/hooks/useCloudSync';
 import { useMilestones } from '@/hooks/useMilestones';
 import { useSavings } from '@/hooks/useSavings';
@@ -67,6 +68,8 @@ export default function RootLayout() {
   const markMilestoneCelebrated = useProgressStore((state) => state.markMilestoneCelebrated);
   const celebratedRewardGoalIds = useProgressStore((state) => state.celebratedRewardGoalIds);
   const markRewardGoalCelebrated = useProgressStore((state) => state.markRewardGoalCelebrated);
+  const markBadgeCelebrated = useProgressStore((state) => state.markBadgeCelebrated);
+  const { newlyUnlocked: newlyUnlockedBadges } = useBehaviorBadges();
   const setUserLevel = useProgressStore((state) => state.setUserLevel);
   const setPremiumStatus = usePremiumStore((state) => state.setPremiumStatus);
   const { nextToCelebrate } = useMilestones();
@@ -213,6 +216,32 @@ export default function RootLayout() {
     segments,
   ]);
 
+  // Badge celebration
+  useEffect(() => {
+    const topSegment = segments[0];
+    const inTabsGroup = topSegment === '(tabs)';
+    const blockedRoute =
+      pathname === '/sos' ||
+      pathname === '/motivation' ||
+      pathname === '/reward' ||
+      pathname === '/reward-achieved' ||
+      pathname.startsWith('/milestone/') ||
+      pathname.startsWith('/badge-unlocked');
+
+    if (
+      !hasHydrated ||
+      !hasCompletedOnboarding ||
+      !inTabsGroup ||
+      blockedRoute ||
+      newlyUnlockedBadges.length === 0 ||
+      AppState.currentState !== 'active'
+    ) return;
+
+    const badge = newlyUnlockedBadges[0];
+    markBadgeCelebrated(badge.id);
+    router.push(`/badge-unlocked?id=${badge.id}` as Href);
+  }, [hasCompletedOnboarding, hasHydrated, markBadgeCelebrated, newlyUnlockedBadges, pathname, router, segments]);
+
   // Daily motivation
   useEffect(() => {
     const topSegment = segments[0];
@@ -328,6 +357,7 @@ export default function RootLayout() {
           name="health-timeline"
           options={{ presentation: 'fullScreenModal' }}
         />
+        <Stack.Screen name="badge-unlocked" options={{ presentation: 'fullScreenModal', headerShown: false }} />
         <Stack.Screen name="(auth)/login" options={{ presentation: 'modal' }} />
         <Stack.Screen name="(auth)/register" options={{ presentation: 'modal' }} />
       </Stack>

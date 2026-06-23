@@ -1,8 +1,8 @@
-import { useRouter } from 'expo-router';
-import { Award, CheckCircle2, Circle, TrendingUp, Wind } from 'lucide-react-native';
+import { type Href, useRouter } from 'expo-router';
+import { Award, CheckCircle2, Circle } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, Text as SvgText } from 'react-native-svg';
 
 import { AppLogo } from '@/components/ui/AppLogo';
 import { Card } from '@/components/ui/Card';
@@ -19,16 +19,22 @@ import { useUserStore } from '@/store/userStore';
 
 type RangeKey = '7d' | '30d' | 'total';
 
-function buildPath(points: { x: number; y: number }[]) {
-  const maxY = Math.max(...points.map((point) => point.y), 1);
-
+function buildPath(points: { x: number; y: number }[], maxY: number) {
   return points
     .map((point, index) => {
       const x = (index / Math.max(points.length - 1, 1)) * 300;
-      const y = 120 - (point.y / maxY) * 100;
+      const y = 110 - (point.y / maxY) * 90;
       return `${index === 0 ? 'M' : 'L'}${x},${y}`;
     })
     .join(' ');
+}
+
+function buildLinearPath(points: number, dailyRate: number, maxY: number) {
+  return Array.from({ length: points }, (_, i) => {
+    const x = (i / Math.max(points - 1, 1)) * 300;
+    const y = 110 - ((i * dailyRate) / maxY) * 90;
+    return `${i === 0 ? 'M' : 'L'}${x},${y}`;
+  }).join(' ');
 }
 
 export default function StatsScreen() {
@@ -50,15 +56,27 @@ export default function StatsScreen() {
   const packageEquivalents = avoided / productConfig.unitsPerPrice;
 
   const rangeSeries = useMemo(() => {
-    if (range === '7d') {
-      return savings.series.slice(-7);
-    }
+    if (range === '7d') return savings.series.slice(-7);
     return savings.series;
   }, [range, savings.series]);
 
+  const dailySavingsRate = useMemo(() => {
+    if (!profile || profile.cigarettesPerDay <= 0 || profile.packPrice <= 0) return 0;
+    const config = getProductConfig(profile.productType);
+    const unitsPerDay =
+      config.quantityCadence === 'day' ? profile.cigarettesPerDay : profile.cigarettesPerDay / 7;
+    return (unitsPerDay / config.unitsPerPrice) * profile.packPrice;
+  }, [profile]);
+
+  const graphMaxY = useMemo(() => {
+    const actualMax = Math.max(...rangeSeries.map((p) => p.y), 1);
+    const linearMax = dailySavingsRate * rangeSeries.length;
+    return Math.max(actualMax, linearMax, 1);
+  }, [rangeSeries, dailySavingsRate]);
+
   const rangeAmount = useMemo(() => {
     if (!profile) {
-      return formatCurrency(0);
+      return formatCurrency(0, 'EUR');
     }
 
     const unitsPerDay =
@@ -68,10 +86,10 @@ export default function StatsScreen() {
     const daily = (profile.packPrice / productConfig.unitsPerPrice) * unitsPerDay;
 
     if (range === '7d') {
-      return formatCurrency(daily * 7);
+      return formatCurrency(daily * 7, profile.currency);
     }
     if (range === '30d') {
-      return formatCurrency(daily * 30);
+      return formatCurrency(daily * 30, profile.currency);
     }
 
     return savings.moneySavedFormatted;
@@ -165,7 +183,28 @@ export default function StatsScreen() {
         </View>
 
         <Svg width="100%" height={140} viewBox="0 0 300 120">
-          <Path d={buildPath(rangeSeries)} stroke={colors.emerald} strokeWidth={4} fill="none" />
+          {/* Courbe "si tu n'avais pas arrêté" (dépenses) */}
+          <Path
+            d={buildLinearPath(rangeSeries.length, dailySavingsRate, graphMaxY)}
+            stroke="rgba(239,68,68,0.35)"
+            strokeWidth={2}
+            strokeDasharray="6,4"
+            fill="none"
+          />
+          {/* Courbe économies réelles */}
+          <Path
+            d={buildPath(rangeSeries, graphMaxY)}
+            stroke={colors.emerald}
+            strokeWidth={3}
+            fill="none"
+          />
+          {/* Légende */}
+          <SvgText x="4" y="14" fill={colors.emerald} fontSize="7" fontFamily="System">
+            Économies
+          </SvgText>
+          <SvgText x="4" y="24" fill="rgba(239,68,68,0.60)" fontSize="7" fontFamily="System">
+            Si tu n'avais pas arrêté
+          </SvgText>
         </Svg>
       </Card>
 
@@ -197,23 +236,20 @@ export default function StatsScreen() {
             gap: 6,
           }}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <TrendingUp color={colors.emerald} size={14} strokeWidth={1.5} />
-            <Text
-              style={[
-                FONTS.bold,
-                {
-                  color: colors.emerald,
-                  opacity: 0.6,
-                  fontSize: 8,
-                  letterSpacing: 1.2,
-                  textTransform: 'uppercase',
-                },
-              ]}
-            >
-              {i18n.t('statsScreen.equivalents')}
-            </Text>
-          </View>
+          <Text
+            style={[
+              FONTS.bold,
+              {
+                color: colors.emerald,
+                opacity: 0.6,
+                fontSize: 8,
+                letterSpacing: 1.2,
+                textTransform: 'uppercase',
+              },
+            ]}
+          >
+            {i18n.t('statsScreen.equivalents')}
+          </Text>
           <Text style={[FONTS.black, { color: colors.emerald, fontSize: 22 }]}>{savings.equivalent.emoji}</Text>
           <Text style={[FONTS.regular, { color: colors.emerald, fontSize: 11, opacity: 0.8 }]}>
             {savings.equivalent.labelFr}
@@ -221,15 +257,19 @@ export default function StatsScreen() {
         </Card>
       </View>
 
-      <Card style={{ gap: SPACING.md, backgroundColor: colors.bgSurface }}>
-        <View style={{ gap: 4 }}>
-          <Text style={[FONTS.black, { fontSize: 18, color: colors.textPrimary }]}>
-            {i18n.t('statsScreen.healthTimeline')}
-          </Text>
-          <Text style={[FONTS.regular, { fontSize: 13, color: colors.textSecondary }]}>
-            {i18n.t('statsScreen.healthSubtitle')}
-          </Text>
-        </View>
+      <Pressable onPress={() => router.push('/health-timeline' as Href)}>
+        <Card style={{ gap: SPACING.md, backgroundColor: colors.bgSurface }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <View style={{ gap: 4, flex: 1 }}>
+              <Text style={[FONTS.black, { fontSize: 18, color: colors.textPrimary }]}>
+                {i18n.t('statsScreen.healthTimeline')}
+              </Text>
+              <Text style={[FONTS.regular, { fontSize: 13, color: colors.textSecondary }]}>
+                {i18n.t('statsScreen.healthSubtitle')}
+              </Text>
+            </View>
+            <Text style={[FONTS.bold, { color: colors.accent, fontSize: 11 }]}>Voir tout →</Text>
+          </View>
 
         <View style={{ gap: SPACING.sm }}>
           {health.timeline.map((item) => {
@@ -264,7 +304,8 @@ export default function StatsScreen() {
             );
           })}
         </View>
-      </Card>
+        </Card>
+      </Pressable>
 
       <Card style={{ gap: SPACING.md, backgroundColor: colors.bgSurface }}>
         <View style={{ gap: 4 }}>
@@ -292,19 +333,9 @@ export default function StatsScreen() {
               }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                {item.icon === 'wind' ? (
-                  <Wind size={16} color={item.reached ? colors.accent : colors.textMuted} strokeWidth={1.5} />
-                ) : item.icon === 'trending_up' ? (
-                  <TrendingUp size={16} color={item.reached ? colors.accent : colors.textMuted} strokeWidth={1.5} />
-                ) : item.icon === 'book' ? (
-                  <Award size={16} color={item.reached ? colors.accent : colors.textMuted} strokeWidth={1.5} />
-                ) : item.icon === 'zap' ? (
-                  <Award size={16} color={item.reached ? colors.accent : colors.textMuted} strokeWidth={1.5} />
-                ) : item.icon === 'flame' ? (
-                  <Award size={16} color={item.reached ? colors.accent : colors.textMuted} strokeWidth={1.5} />
-                ) : (
-                  <Award size={16} color={item.reached ? colors.accent : colors.textMuted} strokeWidth={1.5} />
-                )}
+                <Text style={{ fontSize: 18, opacity: item.reached ? 1 : 0.3 }}>
+                  {item.emoji ?? '⭐'}
+                </Text>
                 <Text
                   style={[
                     FONTS.bold,
@@ -348,7 +379,7 @@ export default function StatsScreen() {
                 gap: 6,
               }}
             >
-              <Award size={18} color={item.reached ? colors.accent : colors.textMuted} strokeWidth={1.5} />
+              <Text style={{ fontSize: 18, opacity: item.reached ? 1 : 0.25 }}>🏆</Text>
               <Text
                 style={[
                   FONTS.bold,
