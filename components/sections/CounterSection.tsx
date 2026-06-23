@@ -1,7 +1,7 @@
 import { Pressable, Text, View } from 'react-native';
 
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter';
-import { FONTS, RADII } from '@/constants/theme';
+import { FONTS } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { i18n } from '@/services/i18n';
 
@@ -57,13 +57,7 @@ function StatSegment({
   );
 }
 
-export function CounterSection({
-  days,
-  hours,
-  minutes,
-  seconds,
-  onRelapsePress,
-}: CounterSectionProps) {
+export function CounterSection({ days, hours, minutes, seconds, onRelapsePress }: CounterSectionProps) {
   const { colors } = useTheme();
 
   return (
@@ -110,58 +104,30 @@ export function CounterSection({
         </Text>
       </View>
 
-      <Pressable onPress={onRelapsePress} style={{ paddingVertical: 4, paddingHorizontal: 4 }}>
-        <Text style={[FONTS.regular, { color: colors.textMuted, fontSize: 11 }]}>
-          {i18n.t('home.relapseLink')}
+      <View style={{ alignItems: 'center', gap: 4 }}>
+        <Text style={[FONTS.bold, { fontSize: 8, color: colors.textMuted, letterSpacing: 1.2 }]}>
+          {i18n.t('home.liveLabel')}
         </Text>
-      </Pressable>
+        <Text style={[FONTS.regular, { fontSize: 12, color: colors.textSecondary }]}>
+          {i18n.t('home.liveBody')}
+        </Text>
+      </View>
 
-      <View
+      <Pressable
+        onPress={onRelapsePress}
         style={{
-          width: '100%',
-          borderRadius: 13,
+          paddingVertical: 6,
+          paddingHorizontal: 14,
+          borderRadius: 999,
           borderWidth: 0.5,
           borderColor: colors.bgCardBorder,
           backgroundColor: colors.bgCard,
-          paddingHorizontal: 12,
-          paddingVertical: 10,
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
         }}
       >
-        <View style={{ flex: 1 }}>
-          <Text style={[FONTS.bold, { fontSize: 8, color: colors.textMuted, letterSpacing: 1.2 }]}>
-            {i18n.t('home.liveLabel')}
-          </Text>
-          <Text style={[FONTS.regular, { fontSize: 13, color: colors.textSecondary, marginTop: 4 }]}>
-            {i18n.t('home.liveBody')}
-          </Text>
-        </View>
-
-        <View
-          style={{
-            width: 30,
-            height: 30,
-            borderRadius: RADII.full,
-            borderWidth: 1.5,
-            borderColor: colors.accent,
-            backgroundColor: colors.accentBg,
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginLeft: 12,
-          }}
-        >
-          <View
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: RADII.full,
-              backgroundColor: colors.accent,
-            }}
-          />
-        </View>
-      </View>
+        <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 11 }]}>
+          {i18n.t('home.relapseLink')}
+        </Text>
+      </Pressable>
     </View>
   );
 }

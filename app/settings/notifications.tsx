@@ -6,6 +6,7 @@ import { Linking, Platform, Pressable, ScrollView, Switch, Text, View } from 're
 import { Button } from '@/components/ui/Button';
 import { SettingsScreenHeader } from '@/components/ui/SettingsScreenHeader';
 import { FONTS, RADII, SPACING } from '@/constants/theme';
+import { usePremiumGate } from '@/hooks/usePremiumGate';
 import { useTheme } from '@/hooks/useTheme';
 import { i18n } from '@/services/i18n';
 import { requestNotificationPermission } from '@/services/notifications';
@@ -82,10 +83,13 @@ export default function SettingsNotificationsScreen() {
   const reminderMinute = useUserStore((state) => state.reminderMinute);
   const milestoneNotificationsEnabled = useUserStore((state) => state.milestoneNotificationsEnabled);
   const motivationNotificationsEnabled = useUserStore((state) => state.motivationNotificationsEnabled);
+  const notifCategories = useUserStore((state) => state.notifCategories);
   const setReminder = useUserStore((state) => state.setReminder);
   const setNotificationPreferences = useUserStore((state) => state.setNotificationPreferences);
+  const setNotifCategories = useUserStore((state) => state.setNotifCategories);
   const notificationPermissionGranted = useProgressStore((state) => state.notificationPermissionGranted);
   const setNotificationPermissionGranted = useProgressStore((state) => state.setNotificationPermissionGranted);
+  const canUseCategories = usePremiumGate('notifCategories');
   const [reminderDate, setReminderDate] = useState(() => {
     const value = new Date();
     value.setHours(reminderHour, reminderMinute, 0, 0);
@@ -119,20 +123,21 @@ export default function SettingsNotificationsScreen() {
   });
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: colors.bgPrimary }}
-      contentContainerStyle={{
-        paddingHorizontal: SPACING.lg,
-        paddingTop: SPACING.xl,
-        gap: SPACING.lg,
-        paddingBottom: SPACING.xxl,
-      }}
-    >
+    <View style={{ flex: 1, backgroundColor: colors.bgPrimary }}>
+      <SettingsScreenHeader
+        title={i18n.t('settingsScreen.notifications')}
+        subtitle={i18n.t('settingsScreen.notificationsBody')}
+      />
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingHorizontal: 20,
+          paddingTop: SPACING.lg,
+          gap: SPACING.lg,
+          paddingBottom: SPACING.xxl,
+        }}
+      >
       <View style={{ gap: 14 }}>
-        <SettingsScreenHeader
-          title={i18n.t('settingsScreen.notifications')}
-          subtitle={i18n.t('settingsScreen.notificationsBody')}
-        />
         {!notificationPermissionGranted ? (
           <Surface
             style={{
@@ -234,6 +239,46 @@ export default function SettingsNotificationsScreen() {
         />
       </Surface>
 
+      {/* Catégories de notifications — PRO */}
+      <View style={{ gap: 8 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Text style={[FONTS.bold, { color: colors.textMuted, fontSize: 8, letterSpacing: 1.5, textTransform: 'uppercase' }]}>
+            Catégories
+          </Text>
+          {!canUseCategories && (
+            <View
+              style={{
+                borderRadius: RADII.full,
+                borderWidth: 1,
+                borderColor: colors.accentBorder,
+                backgroundColor: colors.accentBg,
+                paddingHorizontal: 8,
+                paddingVertical: 2,
+              }}
+            >
+              <Text style={[FONTS.bold, { color: colors.accent, fontSize: 8 }]}>PRO</Text>
+            </View>
+          )}
+        </View>
+
+        <Surface style={{ paddingTop: 4, paddingBottom: 4, opacity: canUseCategories ? 1 : 0.5 }}>
+          {[
+            { key: 'contextual' as const, label: 'Phrases contextuelles (matin, soir, après SOS)' },
+            { key: 'general' as const, label: 'Phrases générales de motivation' },
+            { key: 'statBased' as const, label: 'Statistiques et économies' },
+            { key: 'challenges' as const, label: 'Défis hebdomadaires' },
+          ].map((item, idx, arr) => (
+            <SettingRow
+              key={item.key}
+              label={item.label}
+              value={notifCategories?.[item.key] ?? true}
+              onChange={(v) => canUseCategories && setNotifCategories({ [item.key]: v })}
+              hideBorder={idx === arr.length - 1}
+            />
+          ))}
+        </Surface>
+      </View>
+
       <Button
         label={i18n.t('settingsScreen.requestPermission')}
         variant="secondary"
@@ -243,6 +288,7 @@ export default function SettingsNotificationsScreen() {
             .catch(() => setNotificationPermissionGranted(false))
         }
       />
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }

@@ -1,8 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
-import { ChevronRight } from 'lucide-react-native';
-import { Alert, Linking, Pressable, ScrollView, Text, View } from 'react-native';
+import { ChevronRight, Share2 } from 'lucide-react-native';
+import { Alert, Linking, Pressable, ScrollView, Share, Text, View } from 'react-native';
 
 import { SettingsScreenHeader } from '@/components/ui/SettingsScreenHeader';
 import { APP_LINKS } from '@/constants/appLinks';
@@ -63,8 +63,8 @@ export default function SettingsAboutScreen() {
       onboardingDraft: null,
       hasCompletedOnboarding: false,
       hasHydrated: true,
-      rewardGoalLabel: 'iPhone 15',
-      rewardGoalAmount: 1200,
+      rewardGoals: [],
+      savedPhraseIds: [],
       reminderEnabled: true,
       reminderHour: 19,
       reminderMinute: 0,
@@ -77,13 +77,19 @@ export default function SettingsAboutScreen() {
     useProgressStore.setState({
       journalEntries: [],
       celebratedMilestones: [],
-      celebratedRewardGoalKey: null,
+      celebratedRewardGoalIds: [],
       cravingsHandled: 0,
       appOpenStreak: 0,
-      lastAppOpenAt: null,
+      lastAppOpenDate: null,
       zenSessionsCompleted: 0,
       lastSosMode: 'breathing',
       notificationPermissionGranted: false,
+      weeklyChallenge: null,
+      usedChallengeIds: [],
+      weeklyBadgeCount: 0,
+      userLevel: 1,
+      usedPhraseIds: [],
+      lastMotivationSentAt: null,
     });
 
     usePremiumStore.setState({
@@ -96,19 +102,49 @@ export default function SettingsAboutScreen() {
   };
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: colors.bgPrimary }}
-      contentContainerStyle={{
-        paddingHorizontal: SPACING.lg,
-        paddingTop: SPACING.xl,
-        gap: SPACING.lg,
-        paddingBottom: SPACING.xxl,
-      }}
-    >
+    <View style={{ flex: 1, backgroundColor: colors.bgPrimary }}>
       <SettingsScreenHeader
         title={i18n.t('settingsScreen.about')}
         subtitle={i18n.t('settingsScreen.aboutBody')}
       />
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingHorizontal: 20,
+          paddingTop: SPACING.lg,
+          gap: SPACING.lg,
+          paddingBottom: SPACING.xxl,
+        }}
+      >
+
+      {/* Partager l'app */}
+      <Pressable
+        onPress={() =>
+          Share.share({
+            message: 'J\'utilise Respire pour arrêter de fumer. C\'est vraiment bien ! https://respireapp.com',
+          }).catch(() => undefined)
+        }
+        style={{
+          borderRadius: RADII.lg,
+          borderWidth: 1,
+          borderColor: colors.accentBorder,
+          backgroundColor: colors.accentBg,
+          paddingHorizontal: 16,
+          paddingVertical: 14,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 12,
+        }}
+      >
+        <Share2 color={colors.accent} size={18} strokeWidth={1.5} />
+        <View style={{ flex: 1 }}>
+          <Text style={[FONTS.bold, { color: colors.accent, fontSize: 13 }]}>Partager Respire</Text>
+          <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 11 }]}>
+            Aide quelqu'un à arrêter de fumer
+          </Text>
+        </View>
+        <ChevronRight size={14} color={colors.textMuted} strokeWidth={1.5} />
+      </Pressable>
 
       <View
         style={{
@@ -171,6 +207,7 @@ export default function SettingsAboutScreen() {
           ) : null}
         </View>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }

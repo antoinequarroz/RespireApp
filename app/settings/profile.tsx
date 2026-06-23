@@ -11,6 +11,8 @@ import { SettingsScreenHeader } from '@/components/ui/SettingsScreenHeader';
 import { getProductConfig, PRODUCT_TYPES, type ProductType } from '@/constants/productConfig';
 import { FONTS, RADII, SPACING } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
+import { useUserLevel } from '@/hooks/useUserLevel';
+import type { AppCurrency } from '@/services/calculations';
 import { i18n } from '@/services/i18n';
 import { useUserStore } from '@/store/userStore';
 
@@ -67,7 +69,9 @@ export default function SettingsProfileScreen() {
   const { colors, fixed } = useTheme();
   const profile = useUserStore((state) => state.profile);
   const setProfile = useUserStore((state) => state.setProfile);
+  const { level, label: levelLabel, emoji: levelEmoji, nextLevelDays } = useUserLevel();
   const [productType, setProductType] = useState<ProductType>(profile?.productType ?? 'cigarette');
+  const [currency, setCurrency] = useState<AppCurrency>(profile?.currency ?? 'EUR');
   const [date, setDate] = useState<Date>(profile ? new Date(profile.lastCigaretteAt) : new Date());
   const [cigarettesPerDay, setCigarettesPerDay] = useState(profile?.cigarettesPerDay ?? 10);
   const [packPrice, setPackPrice] = useState(String(profile?.packPrice ?? 10.5));
@@ -129,6 +133,7 @@ export default function SettingsProfileScreen() {
           setProfile({
             ...profile,
             productType,
+            currency,
             lastCigaretteAt: date.toISOString(),
             cigarettesPerDay: Math.round(cigarettesPerDay),
             packPrice: Number(packPrice.replace(',', '.')) || 0,
@@ -140,20 +145,58 @@ export default function SettingsProfileScreen() {
   };
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: colors.bgPrimary }}
-      contentContainerStyle={{
-        paddingHorizontal: SPACING.lg,
-        paddingTop: SPACING.xl,
-        gap: SPACING.lg,
-        paddingBottom: SPACING.xxl,
-      }}
-    >
+    <View style={{ flex: 1, backgroundColor: colors.bgPrimary }}>
+      <SettingsScreenHeader
+        title={i18n.t('settingsScreen.profile')}
+        subtitle={i18n.t('settingsScreen.profileBody')}
+      />
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingHorizontal: 20,
+          paddingTop: SPACING.lg,
+          gap: SPACING.lg,
+          paddingBottom: SPACING.xxl,
+        }}
+      >
       <View style={{ gap: 14 }}>
-        <SettingsScreenHeader
-          title={i18n.t('settingsScreen.profile')}
-          subtitle={i18n.t('settingsScreen.profileBody')}
-        />
+
+        {/* Badge niveau utilisateur */}
+        <Surface
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 12,
+            backgroundColor: colors.accentBg,
+            borderColor: colors.accentBorder,
+          }}
+        >
+          <View
+            style={{
+              width: 42,
+              height: 42,
+              borderRadius: RADII.full,
+              backgroundColor: 'rgba(124,58,237,0.18)',
+              borderWidth: 1.5,
+              borderColor: colors.accent,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Text style={{ fontSize: 20 }}>{levelEmoji}</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[FONTS.black, { color: colors.accent, fontSize: 15 }]}>
+              Niveau {level} — {levelLabel}
+            </Text>
+            {nextLevelDays !== null && (
+              <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 11, marginTop: 2 }]}>
+                Prochain niveau dans {nextLevelDays}j
+              </Text>
+            )}
+          </View>
+        </Surface>
+
         <Surface
           style={{
             backgroundColor: 'rgba(255, 77, 109, 0.08)',
@@ -311,6 +354,37 @@ export default function SettingsProfileScreen() {
 
         <View style={{ gap: 8 }}>
           <Label>{i18n.t(`products.${productType}.priceLabel`)}</Label>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            {(['EUR', 'CHF'] as const).map((item) => {
+              const selected = currency === item;
+
+              return (
+                <Pressable
+                  key={item}
+                  onPress={() => setCurrency(item)}
+                  style={{
+                    flex: 1,
+                    minHeight: 42,
+                    borderRadius: RADII.md,
+                    borderWidth: 1,
+                    borderColor: selected ? colors.accent : colors.bgCardBorder,
+                    backgroundColor: selected ? colors.accentBg : colors.bgPrimary,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Text
+                    style={[
+                      selected ? FONTS.bold : FONTS.regular,
+                      { color: selected ? colors.accent : colors.textSecondary, fontSize: 12 },
+                    ]}
+                  >
+                    {item}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
           <View
             style={{
               borderRadius: RADII.md,
@@ -324,7 +398,7 @@ export default function SettingsProfileScreen() {
               gap: 8,
             }}
           >
-            <Text style={[FONTS.bold, { color: colors.accent, fontSize: 13 }]}>EUR</Text>
+            <Text style={[FONTS.bold, { color: colors.accent, fontSize: 13 }]}>{currency}</Text>
             <TextInput
               keyboardType="decimal-pad"
               value={packPrice}
@@ -346,6 +420,7 @@ export default function SettingsProfileScreen() {
       </Surface>
 
       <Button label={i18n.t('settingsScreen.saveChanges')} onPress={saveProfile} />
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }

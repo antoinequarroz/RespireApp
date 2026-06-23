@@ -55,19 +55,20 @@ export default function SettingsLanguageScreen() {
   const setLanguage = useUserStore((state) => state.setLanguage);
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: colors.bgPrimary }}
-      contentContainerStyle={{
-        paddingHorizontal: SPACING.lg,
-        paddingTop: SPACING.xl,
-        gap: SPACING.lg,
-        paddingBottom: SPACING.xxl,
-      }}
-    >
+    <View style={{ flex: 1, backgroundColor: colors.bgPrimary }}>
       <SettingsScreenHeader
         title={i18n.t('settingsScreen.language')}
         subtitle={i18n.t('settingsScreen.languageBody')}
       />
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingHorizontal: 20,
+          paddingTop: SPACING.lg,
+          gap: SPACING.lg,
+          paddingBottom: SPACING.xxl,
+        }}
+      >
 
       <View style={{ gap: 10 }}>
         <LanguageCard
@@ -79,6 +80,7 @@ export default function SettingsLanguageScreen() {
         <LanguageCard title={i18n.t('common.en')} subtitle={i18n.t('common.soon')} disabled />
         <LanguageCard title={i18n.t('common.de')} subtitle={i18n.t('common.soon')} disabled />
       </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }

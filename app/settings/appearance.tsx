@@ -19,19 +19,20 @@ export default function SettingsAppearanceScreen() {
   ] as const;
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: colors.bgPrimary }}
-      contentContainerStyle={{
-        paddingHorizontal: SPACING.lg,
-        paddingTop: SPACING.xl,
-        paddingBottom: SPACING.xxl,
-        gap: SPACING.lg,
-      }}
-    >
+    <View style={{ flex: 1, backgroundColor: colors.bgPrimary }}>
       <SettingsScreenHeader
         title={i18n.t('settingsScreen.appearanceTitle')}
         subtitle={i18n.t('settingsScreen.appearanceBody')}
       />
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingHorizontal: 20,
+          paddingTop: SPACING.lg,
+          paddingBottom: SPACING.xxl,
+          gap: SPACING.lg,
+        }}
+      >
 
       {options.map((item) => {
         const active = theme === item.key;
@@ -120,6 +121,7 @@ export default function SettingsAppearanceScreen() {
           </Pressable>
         );
       })}
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
