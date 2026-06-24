@@ -48,7 +48,7 @@ export default function PackPriceScreen() {
 
   const inputRef = useRef<TextInput>(null);
   // Texte affiché dans le champ — initialisé depuis le store
-  const [rawText, setRawText] = useState(packPrice > 0 ? String(packPrice).replace('.', ',') : '');
+  const [rawText, setRawText] = useState(packPrice > 0 ? packPrice.toFixed(2).replace('.', ',') : '');
 
   function handleChangeText(text: string) {
     // Accepte chiffres, virgule et point

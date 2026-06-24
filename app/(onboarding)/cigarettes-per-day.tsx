@@ -1,12 +1,11 @@
 import Slider from '@react-native-community/slider';
-import { useRouter } from 'expo-router';
-import { useMemo } from 'react';
+import { type Href, useRouter } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
-import { OnboardingOptionCard, OnboardingScaffold } from '@/components/ui/OnboardingScaffold';
+import { OnboardingScaffold } from '@/components/ui/OnboardingScaffold';
 import { getProductConfig } from '@/constants/productConfig';
-import { FONTS, SPACING } from '@/constants/theme';
+import { FONTS, RADII, SPACING } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { i18n } from '@/services/i18n';
 import { useUserStore } from '@/store/userStore';
@@ -20,23 +19,14 @@ const PRESETS = [
 
 export default function CigarettesPerDayScreen() {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors } = useTheme('dark');
   const profile = useUserStore((state) => state.profile);
   const onboardingDraft = useUserStore((state) => state.onboardingDraft);
   const updateOnboardingDraft = useUserStore((state) => state.updateOnboardingDraft);
   const productType = onboardingDraft?.productType ?? profile?.productType ?? 'cigarette';
   const productConfig = getProductConfig(productType);
-  const cigarettesPerDay = onboardingDraft?.cigarettesPerDay ?? profile?.cigarettesPerDay ?? 10;
-  const selectedPreset = useMemo(
-    () =>
-      PRESETS.find((preset) => {
-        if (preset.key === 'under5') return cigarettesPerDay < 5;
-        if (preset.key === '5to10') return cigarettesPerDay >= 5 && cigarettesPerDay <= 10;
-        if (preset.key === '11to20') return cigarettesPerDay >= 11 && cigarettesPerDay <= 20;
-        return cigarettesPerDay > 20;
-      })?.key,
-    [cigarettesPerDay],
-  );
+  const quantity = onboardingDraft?.cigarettesPerDay ?? profile?.cigarettesPerDay ?? productConfig.defaultQuantity;
+  const cadenceLabel = productConfig.quantityCadence === 'week' ? 'semaine' : 'jour';
 
   return (
     <OnboardingScaffold
@@ -49,18 +39,25 @@ export default function CigarettesPerDayScreen() {
         unit: i18n.t(`products.${productType}.quantityBody`),
       })}
       onBack={() => router.back()}
-      footer={<Button label={i18n.t('common.continue')} onPress={() => router.push('/pack-price')} />}
+      footer={
+        <Button
+          label={i18n.t('common.continue')}
+          onPress={() => router.push('/(onboarding)/pack-price' as Href)}
+        />
+      }
     >
-      <View style={{ gap: SPACING.lg }}>
-        <View style={{ alignItems: 'center', gap: 6 }}>
-          <Text style={[FONTS.black, { color: colors.accent, fontSize: 48, letterSpacing: -1.5 }]}>
-            {cigarettesPerDay}
+      <View style={{ flex: 1, justifyContent: 'center', gap: 18 }}>
+        <View style={{ alignItems: 'center', gap: 4 }}>
+          <Text style={[FONTS.black, { color: colors.accent, fontSize: 52, letterSpacing: -1.5 }]}>
+            {quantity}
           </Text>
           <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 12 }]}>
-            {i18n.t(`products.${productType}.unitLong`)}
+            {i18n.t(`products.${productType}.quantityTitle`)} / {cadenceLabel}
           </Text>
           <Text style={[FONTS.regular, { color: colors.textMuted, fontSize: 11 }]}>
-            {i18n.t(`products.${productType}.hint`, { value: cigarettesPerDay.toFixed(1) })}
+            {i18n.t(`products.${productType}.hint`, {
+              value: (quantity / productConfig.unitsPerPrice).toFixed(1).replace('.', ','),
+            })}
           </Text>
         </View>
 
@@ -71,26 +68,29 @@ export default function CigarettesPerDayScreen() {
             borderColor: colors.bgCardBorder,
             backgroundColor: colors.bgCard,
             paddingHorizontal: 14,
-            paddingVertical: 14,
-            gap: 12,
+            paddingVertical: 16,
+            gap: 14,
           }}
         >
           <Slider
-            minimumValue={1}
+            minimumValue={productConfig.min}
             maximumValue={productConfig.max}
             step={1}
             minimumTrackTintColor={colors.accent}
             maximumTrackTintColor={colors.dividerStrong}
-            value={cigarettesPerDay}
+            thumbTintColor="#7C3AED"
+            value={quantity}
             onValueChange={(value) => updateOnboardingDraft({ cigarettesPerDay: Math.round(value) })}
           />
 
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             <Pressable
-              onPress={() => updateOnboardingDraft({ cigarettesPerDay: Math.max(cigarettesPerDay - 1, 1) })}
+              onPress={() =>
+                updateOnboardingDraft({ cigarettesPerDay: Math.max(quantity - 1, productConfig.min) })
+              }
               style={{
-                width: 34,
-                height: 34,
+                width: 36,
+                height: 36,
                 borderRadius: 11,
                 borderWidth: 1,
                 borderColor: colors.accentBorder,
@@ -99,14 +99,20 @@ export default function CigarettesPerDayScreen() {
                 backgroundColor: colors.bgCard,
               }}
             >
-              <Text style={[FONTS.regular, { color: colors.accent, fontSize: 20 }]}>−</Text>
+              <Text style={[FONTS.bold, { color: colors.accent, fontSize: 18 }]}>−</Text>
             </Pressable>
-            <View style={{ flex: 1 }} />
+
+            <Text style={[FONTS.bold, { color: colors.textPrimary, fontSize: 13 }]}>
+              {quantity} / {cadenceLabel}
+            </Text>
+
             <Pressable
-              onPress={() => updateOnboardingDraft({ cigarettesPerDay: Math.min(cigarettesPerDay + 1, 60) })}
+              onPress={() =>
+                updateOnboardingDraft({ cigarettesPerDay: Math.min(quantity + 1, productConfig.max) })
+              }
               style={{
-                width: 34,
-                height: 34,
+                width: 36,
+                height: 36,
                 borderRadius: 11,
                 borderWidth: 1,
                 borderColor: colors.accentBorder,
@@ -115,21 +121,69 @@ export default function CigarettesPerDayScreen() {
                 backgroundColor: colors.bgCard,
               }}
             >
-              <Text style={[FONTS.regular, { color: colors.accent, fontSize: 20 }]}>+</Text>
+              <Text style={[FONTS.bold, { color: colors.accent, fontSize: 18 }]}>+</Text>
             </Pressable>
           </View>
         </View>
 
         <View style={{ gap: SPACING.sm }}>
-          {PRESETS.map((preset) => (
-            <OnboardingOptionCard
-              key={preset.key}
-              title={i18n.t(preset.titleKey)}
-              subtitle={i18n.t(preset.subtitleKey)}
-              selected={selectedPreset === preset.key}
-              onPress={() => updateOnboardingDraft({ cigarettesPerDay: preset.value })}
-            />
-          ))}
+          {PRESETS.map((preset) => {
+            const selected =
+              (preset.key === 'under5' && quantity < 5) ||
+              (preset.key === '5to10' && quantity >= 5 && quantity <= 10) ||
+              (preset.key === '11to20' && quantity >= 11 && quantity <= 20) ||
+              (preset.key === '20plus' && quantity > 20);
+
+            return (
+              <Pressable
+                key={preset.key}
+                onPress={() => updateOnboardingDraft({ cigarettesPerDay: preset.value })}
+                style={{
+                  borderRadius: 13,
+                  borderWidth: 1,
+                  borderColor: selected ? colors.borderSelected : colors.bgCardBorder,
+                  backgroundColor: selected ? colors.cardSelected : colors.bgCard,
+                  paddingHorizontal: 14,
+                  paddingVertical: 14,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 12,
+                }}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={[selected ? FONTS.bold : FONTS.regular, { color: selected ? colors.accent : colors.textPrimary, fontSize: 13 }]}>
+                    {i18n.t(preset.titleKey)}
+                  </Text>
+                  <Text style={[FONTS.regular, { color: selected ? colors.emerald : colors.textMuted, fontSize: 10, marginTop: 4 }]}>
+                    {i18n.t(preset.subtitleKey)}
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    width: 18,
+                    height: 18,
+                    borderRadius: RADII.full,
+                    borderWidth: 1,
+                    borderColor: selected ? colors.borderSelected : colors.accentBorder,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {selected ? (
+                    <View
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: RADII.full,
+                        backgroundColor: colors.accent,
+                      }}
+                    />
+                  ) : null}
+                </View>
+              </Pressable>
+            );
+          })}
         </View>
       </View>
     </OnboardingScaffold>

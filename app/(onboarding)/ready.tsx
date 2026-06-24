@@ -76,15 +76,16 @@ export default function ReadyScreen() {
         flex: 1,
         backgroundColor: colors.bgDeep,
         paddingHorizontal: 20,
-        paddingTop: Math.max(insets.top + 12, 32),
+        paddingTop: Math.max(insets.top + 8, 56),
         paddingBottom: Math.max(insets.bottom + 8, 16),
       }}
     >
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1, justifyContent: 'space-between', gap: 20 }}
+        contentContainerStyle={{ flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
       >
-      <View style={{ alignItems: 'center', justifyContent: 'center', gap: 22, paddingTop: 16 }}>
+      <View style={{ flex: 1, justifyContent: 'space-between', gap: 20 }}>
+      <View style={{ alignItems: 'center', gap: 22, paddingTop: 8 }}>
         <View
           style={{
             width: 84,
@@ -239,6 +240,7 @@ export default function ReadyScreen() {
             {i18n.t('onboarding.editData')}
           </Text>
         </Pressable>
+      </View>
       </View>
       </ScrollView>
     </View>

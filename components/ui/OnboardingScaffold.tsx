@@ -41,7 +41,7 @@ export function OnboardingScaffold({
         flex: 1,
         backgroundColor: colors.bgDeep,
         paddingHorizontal: 20,
-        paddingTop: Math.max(insets.top + 8, 20),
+        paddingTop: Math.max(insets.top + 8, 56),
         paddingBottom: Math.max(insets.bottom + 8, SPACING.lg),
       }}
     >
