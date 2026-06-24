@@ -101,7 +101,7 @@ export function OnboardingScaffold({
               {
                 color: colors.textPrimary,
                 fontSize: effectiveTitleSize,
-                lineHeight: Math.max(effectiveTitleSize - 3, 30),
+                lineHeight: Math.round(effectiveTitleSize * 1.15),
                 maxWidth: titleMaxWidth,
               },
             ]}
