@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
@@ -10,18 +10,18 @@ import { useUserStore } from '@/store/userStore';
 
 export default function MotivationScreen() {
   const router = useRouter();
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme('dark');
   const profile = useUserStore((state) => state.profile);
   const onboardingDraft = useUserStore((state) => state.onboardingDraft);
   const updateOnboardingDraft = useUserStore((state) => state.updateOnboardingDraft);
   const motivations = onboardingDraft?.motivations ?? profile?.motivations ?? [];
   const options = [
-    i18n.t('onboarding.motivationMoney'),
-    i18n.t('onboarding.motivationHealth'),
-    i18n.t('onboarding.motivationFamily'),
-    i18n.t('onboarding.motivationProof'),
-    i18n.t('onboarding.motivationSport'),
-    i18n.t('onboarding.motivationEnvironment'),
+    { key: 'health', label: i18n.t('onboarding.motivationHealth'), emoji: '❤️' },
+    { key: 'money', label: i18n.t('onboarding.motivationMoney'), emoji: '💸' },
+    { key: 'sport', label: i18n.t('onboarding.motivationSport'), emoji: '🏃' },
+    { key: 'family', label: i18n.t('onboarding.motivationFamily'), emoji: '👨‍👩‍👧' },
+    { key: 'freedom', label: i18n.t('onboarding.motivationFreedom'), emoji: '🕊️' },
+    { key: 'other', label: i18n.t('onboarding.motivationOther'), emoji: '✨' },
   ];
 
   return (
@@ -33,8 +33,11 @@ export default function MotivationScreen() {
       onBack={() => router.back()}
       footer={
         <>
-          <Button label={i18n.t('onboarding.finishCta')} onPress={() => router.push('/notifications')} />
-          <Pressable onPress={() => router.push('/notifications')}>
+          <Button
+            label={i18n.t('onboarding.finishCta')}
+            onPress={() => router.push('/(onboarding)/notifications' as Href)}
+          />
+          <Pressable onPress={() => router.push('/(onboarding)/notifications' as Href)}>
             <Text style={[FONTS.regular, { color: colors.textMuted, fontSize: 11, textAlign: 'center' }]}>
               {i18n.t('onboarding.skipMotivation')}
             </Text>
@@ -42,47 +45,67 @@ export default function MotivationScreen() {
         </>
       }
     >
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.md }}>
-        {options.map((option) => {
-          const active = motivations.includes(option);
+      <View style={{ flex: 1, justifyContent: 'center', gap: 18 }}>
+        <Text
+          style={[
+            FONTS.regular,
+            {
+              color: colors.textSecondary,
+              fontSize: 11,
+              textAlign: 'center',
+              maxWidth: 260,
+              alignSelf: 'center',
+            },
+          ]}
+        >
+          {i18n.t('onboarding.motivationBody')}
+        </Text>
 
-          return (
-            <Pressable
-              key={option}
-              onPress={() =>
-                updateOnboardingDraft({
-                  motivations: active
-                    ? motivations.filter((item) => item !== option)
-                    : [...motivations, option],
-                })
-              }
-              style={{
-                width: '47%',
-                minHeight: 54,
-                borderRadius: RADII.md,
-                borderWidth: 1,
-                borderColor: active ? colors.borderSelected : colors.bgCardBorder,
-                backgroundColor: active ? colors.accent : colors.bgCard,
-                alignItems: 'center',
-                justifyContent: 'center',
-                paddingHorizontal: 10,
-              }}
-            >
-              <Text
-                style={[
-                  FONTS.bold,
-                  {
-                    color: active ? (isDark ? colors.bgDeep : '#FFFFFF') : colors.textPrimary,
-                    fontSize: 13,
-                    textAlign: 'center',
-                  },
-                ]}
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.md, justifyContent: 'center' }}>
+          {options.map((option) => {
+            const active = motivations.includes(option.key);
+
+            return (
+              <Pressable
+                key={option.key}
+                onPress={() =>
+                  updateOnboardingDraft({
+                    motivations: active
+                      ? motivations.filter((item) => item !== option.key)
+                      : [...motivations, option.key],
+                  })
+                }
+                style={{
+                  width: '47%',
+                  minHeight: 102,
+                  borderRadius: 13,
+                  borderWidth: 1,
+                  borderColor: active ? colors.borderSelected : colors.bgCardBorder,
+                  backgroundColor: active ? colors.cardSelected : colors.bgCard,
+                  paddingHorizontal: 12,
+                  paddingVertical: 14,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                }}
               >
-                {option}
-              </Text>
-            </Pressable>
-          );
-        })}
+                <Text style={{ fontSize: 25 }}>{option.emoji}</Text>
+                <Text
+                  style={[
+                    FONTS.bold,
+                    {
+                      color: active ? colors.accent : colors.textPrimary,
+                      fontSize: 12,
+                      textAlign: 'center',
+                    },
+                  ]}
+                >
+                  {option.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
     </OnboardingScaffold>
   );

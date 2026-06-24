@@ -7,10 +7,11 @@ import { useTheme } from '@/hooks/useTheme';
 
 interface AppLogoProps {
   size?: 'header' | 'hero';
+  forceScheme?: 'dark' | 'light';
 }
 
-export function AppLogo({ size = 'header' }: AppLogoProps) {
-  const { colors, isDark } = useTheme();
+export function AppLogo({ size = 'header', forceScheme }: AppLogoProps) {
+  const { colors, isDark } = useTheme(forceScheme);
   const fontSize = size === 'hero' ? 28 : 15;
   const lineHeight = size === 'hero' ? 32 : 18;
 
@@ -24,8 +25,8 @@ export function AppLogo({ size = 'header' }: AppLogoProps) {
           color: colors.accent,
         },
       ]}
-    >
-      Respire
+      >
+      respire
     </Text>
   );
 
@@ -47,7 +48,7 @@ export function AppLogo({ size = 'header' }: AppLogoProps) {
               },
             ]}
           >
-            Respire
+            respire
           </Text>
         </LinearGradient>
       </MaskedView>

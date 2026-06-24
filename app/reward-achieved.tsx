@@ -7,14 +7,23 @@ import { FONTS, RADII } from '@/constants/theme';
 import { useSavings } from '@/hooks/useSavings';
 import { useTheme } from '@/hooks/useTheme';
 import { i18n } from '@/services/i18n';
+import { useProgressStore } from '@/store/progressStore';
 import { useUserStore } from '@/store/userStore';
 
 export default function RewardAchievedScreen() {
   const router = useRouter();
   const { colors } = useTheme();
-  const rewardGoalLabel = useUserStore((state) => state.rewardGoalLabel);
-  const rewardGoalAmount = useUserStore((state) => state.rewardGoalAmount);
+  const rewardGoals = useUserStore((state) => state.rewardGoals);
+  const currency = useUserStore((state) => state.profile?.currency ?? 'EUR');
+  const celebratedRewardGoalIds = useProgressStore((state) => state.celebratedRewardGoalIds);
   const { moneySavedFormatted } = useSavings();
+
+  // Show the most recently celebrated goal
+  const celebratedGoal = celebratedRewardGoalIds
+    .slice()
+    .reverse()
+    .map((id) => rewardGoals.find((g) => g.id === id))
+    .find(Boolean) ?? rewardGoals[0] ?? null;
 
   return (
     <View
@@ -50,7 +59,7 @@ export default function RewardAchievedScreen() {
               justifyContent: 'center',
             }}
           >
-            <Gift color={colors.accent} size={28} strokeWidth={1.8} />
+            <Gift color={colors.accent} size={28} strokeWidth={1.5} />
           </View>
         </View>
 
@@ -65,35 +74,37 @@ export default function RewardAchievedScreen() {
             ]}
           >
             {i18n.t('reward.achievedBody', {
-              label: rewardGoalLabel,
-              amount: rewardGoalAmount,
+              label: celebratedGoal?.label ?? '',
+              amount: celebratedGoal?.amount ?? 0,
               saved: moneySavedFormatted,
             })}
           </Text>
         </Animated.View>
 
-        <View
-          style={{
-            width: '100%',
-            borderRadius: RADII.xl,
-            backgroundColor: colors.bgCard,
-            borderWidth: 0.5,
-            borderColor: colors.bgCardBorder,
-            padding: 14,
-            gap: 12,
-          }}
-        >
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={[FONTS.bold, { color: colors.textMuted, fontSize: 9, letterSpacing: 1 }]}>
-              {i18n.t('reward.label')}
+        {celebratedGoal && (
+          <View
+            style={{
+              width: '100%',
+              borderRadius: RADII.xl,
+              backgroundColor: colors.bgCard,
+              borderWidth: 0.5,
+              borderColor: colors.bgCardBorder,
+              padding: 14,
+              gap: 12,
+            }}
+          >
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text style={[FONTS.bold, { color: colors.textMuted, fontSize: 9, letterSpacing: 1 }]}>
+                {i18n.t('reward.label')}
+              </Text>
+              <Sparkles color={colors.accent} size={16} strokeWidth={1.5} />
+            </View>
+            <Text style={[FONTS.black, { color: colors.accent, fontSize: 18 }]}>{celebratedGoal.label}</Text>
+            <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 11 }]}>
+              {moneySavedFormatted} / {celebratedGoal.amount} {currency}
             </Text>
-            <Sparkles color={colors.accent} size={16} strokeWidth={1.5} />
           </View>
-          <Text style={[FONTS.black, { color: colors.accent, fontSize: 18 }]}>{rewardGoalLabel}</Text>
-          <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 11 }]}>
-            {moneySavedFormatted} / {rewardGoalAmount} EUR
-          </Text>
-        </View>
+        )}
 
         <Pressable
           onPress={() => router.replace('/(tabs)' as Href)}

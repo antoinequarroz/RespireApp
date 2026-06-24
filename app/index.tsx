@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { View } from 'react-native';
 import Animated, {
@@ -31,7 +31,7 @@ export default function SplashRoute() {
     particleThree.value = withRepeat(withTiming(1, { duration: 1800, easing: Easing.linear }), -1, false);
 
     const timeout = setTimeout(() => {
-      router.replace(hasCompletedOnboarding ? '/(tabs)' : '/welcome');
+      router.replace(hasCompletedOnboarding ? '/(tabs)' : ('/(onboarding)/welcome' as Href));
     }, 2200);
 
     return () => clearTimeout(timeout);

@@ -1,9 +1,9 @@
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import { Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { FONTS, SPACING } from '@/constants/theme';
+import { FONTS } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import { i18n } from '@/services/i18n';
 import { requestNotificationPermission } from '@/services/notifications';
@@ -11,12 +11,12 @@ import { useProgressStore } from '@/store/progressStore';
 
 export default function NotificationPermissionScreen() {
   const router = useRouter();
-  const { colors, fixed } = useTheme();
+  const { colors, fixed } = useTheme('dark');
   const setNotificationPermissionGranted = useProgressStore(
     (state) => state.setNotificationPermissionGranted,
   );
 
-  const goNext = () => router.push('/ready');
+  const goNext = () => router.push('/(onboarding)/ready' as Href);
 
   return (
     <View
@@ -24,11 +24,11 @@ export default function NotificationPermissionScreen() {
         flex: 1,
         justifyContent: 'space-between',
         backgroundColor: colors.bgDeep,
-        paddingHorizontal: SPACING.xl,
-        paddingVertical: SPACING.xxl,
+        paddingHorizontal: 20,
+        paddingVertical: 32,
       }}
     >
-      <View style={{ flex: 1, justifyContent: 'center', gap: SPACING.xl }}>
+      <View style={{ flex: 1, justifyContent: 'center', gap: 24 }}>
         <View style={{ alignItems: 'center' }}>
           <View
             style={{
@@ -42,7 +42,7 @@ export default function NotificationPermissionScreen() {
               justifyContent: 'center',
             }}
           >
-            <Text style={[FONTS.black, { color: colors.accent, fontSize: 28 }]}>🔔</Text>
+            <Text style={{ fontSize: 32 }}>🔔</Text>
             <View
               style={{
                 position: 'absolute',
@@ -57,32 +57,56 @@ export default function NotificationPermissionScreen() {
           </View>
         </View>
 
-        <View style={{ gap: 8 }}>
-          <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 18, textAlign: 'center' }]}>
+        <View style={{ gap: 1, alignItems: 'center' }}>
+          <Text
+            style={[
+              FONTS.black,
+              {
+                color: colors.textPrimary,
+                fontSize: 38,
+                lineHeight: 35,
+                textAlign: 'center',
+                maxWidth: '88%',
+              },
+            ]}
+          >
             {i18n.t('onboarding.notificationsTitle')}
           </Text>
-          <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 11, textAlign: 'center' }]}>
+          <Text
+            style={[
+              FONTS.regular,
+              {
+                color: colors.textSecondary,
+                fontSize: 11,
+                textAlign: 'center',
+                lineHeight: 17,
+                maxWidth: 250,
+              },
+            ]}
+          >
             {i18n.t('onboarding.notificationsBody')}
           </Text>
         </View>
 
         <Card
           style={{
+            gap: 10,
             backgroundColor: colors.bgCard,
             borderColor: colors.bgCardBorder,
-            gap: 10,
+            paddingHorizontal: 14,
+            paddingVertical: 14,
           }}
         >
           <Text style={[FONTS.bold, { color: colors.textPrimary, fontSize: 13 }]}>
             {i18n.t('onboarding.notificationsCardTitle')}
           </Text>
-          <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 13 }]}>
+          <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 12, lineHeight: 18 }]}>
             {i18n.t('onboarding.notificationsCardBody')}
           </Text>
         </Card>
       </View>
 
-      <View style={{ gap: SPACING.md }}>
+      <View style={{ gap: 12 }}>
         <Button
           label={i18n.t('onboarding.notificationsAccept')}
           onPress={() =>

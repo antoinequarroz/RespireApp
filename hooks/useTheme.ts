@@ -2,8 +2,9 @@ import { useColorScheme } from 'react-native';
 
 import { DARK, FIXED, LIGHT } from '@/constants/theme';
 
-export function useTheme() {
-  const scheme = useColorScheme();
+export function useTheme(forcedScheme?: 'dark' | 'light') {
+  const systemScheme = useColorScheme();
+  const scheme = forcedScheme ?? systemScheme;
   const isDark = scheme !== 'light';
   const colors = isDark ? DARK : LIGHT;
 

@@ -13,7 +13,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { i18n } from '@/services/i18n';
 
 type BreathPhaseKey = 'inhale' | 'hold' | 'exhale' | 'pause';
-export type BreathingTechniqueId = 'box' | 'coherence' | '478';
+export type BreathingTechniqueId = 'box' | 'coherence' | '478' | 'wimhof';
 
 interface BreathPhase {
   key: BreathPhaseKey;
@@ -30,6 +30,18 @@ interface BreathingTechnique {
 }
 
 const BREATHING_TECHNIQUES: Record<BreathingTechniqueId, BreathingTechnique> = {
+  wimhof: {
+    id: 'wimhof',
+    titleKey: 'zen.techniques.wimhof',
+    bodyKey: 'zen.techniques.wimhofBody',
+    cycles: 3,
+    phases: [
+      { key: 'inhale', duration: 15, targetScale: 1 },
+      { key: 'hold', duration: 30, targetScale: 1 },
+      { key: 'exhale', duration: 5, targetScale: 0.85 },
+      { key: 'pause', duration: 10, targetScale: 0.85 },
+    ],
+  },
   box: {
     id: 'box',
     titleKey: 'zen.techniques.box',

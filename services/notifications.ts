@@ -1,7 +1,9 @@
 import * as Notifications from 'expo-notifications';
 
 import { MILESTONES } from '@/constants/milestones';
-import { MOTIVATION_MESSAGES } from '@/constants/motivationMessages';
+import { pickMotivationPhrase } from '@/constants/motivationPhrases';
+import type { ActiveWeeklyChallenge } from '@/store/progressStore';
+import { useProgressStore } from '@/store/progressStore';
 import { buildMilestoneDate, msFromTimelineItem, type UserProfile } from '@/services/calculations';
 import { i18n } from '@/services/i18n';
 
@@ -54,6 +56,13 @@ export async function syncDailyReminder(
   hour: number,
   minute: number,
   motivationEnabled = true,
+  phraseContext?: {
+    smokeFreeDays: number;
+    cigarettesAvoided: number;
+    moneySaved: number;
+    savings: string;
+    equivalent: string;
+  },
 ) {
   await cancelScheduledByScope(DAILY_REMINDER_ID);
 
@@ -61,12 +70,23 @@ export async function syncDailyReminder(
     return;
   }
 
-  const message = MOTIVATION_MESSAGES[(hour + minute) % MOTIVATION_MESSAGES.length];
+  let body = i18n.t('notifications.dailyBody');
+
+  if (motivationEnabled && phraseContext) {
+    const recentIds = useProgressStore.getState().getRecentUsedPhraseIds();
+    const result = pickMotivationPhrase({
+      ...phraseContext,
+      trigger: 'daily',
+      usedPhraseIds: recentIds,
+      hourOfDay: hour,
+    });
+    body = result.text;
+  }
 
   await Notifications.scheduleNotificationAsync({
     content: {
       title: i18n.t('notifications.dailyTitle'),
-      body: motivationEnabled ? message || i18n.t('notifications.dailyBody') : i18n.t('notifications.dailyBody'),
+      body,
       data: { scope: DAILY_REMINDER_ID },
     },
     trigger: {
@@ -75,6 +95,52 @@ export async function syncDailyReminder(
       minute,
     },
   });
+}
+
+const WEEKLY_CHALLENGE_PREFIX = 'respire-weekly-challenge';
+
+export async function syncWeeklyChallengeNotifications(
+  challenge: ActiveWeeklyChallenge,
+  target: number,
+) {
+  await cancelScheduledByScope(WEEKLY_CHALLENGE_PREFIX);
+
+  const weekStart = new Date(challenge.weekStart);
+
+  // Monday 9h announcement
+  const monday = new Date(weekStart);
+  monday.setHours(9, 0, 0, 0);
+  if (monday.getTime() > Date.now()) {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: '🏆 Défi de la semaine',
+        body: challenge.label,
+        data: { scope: WEEKLY_CHALLENGE_PREFIX },
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: monday,
+      },
+    }).catch(() => undefined);
+  }
+
+  // Thursday reminder if progress < target / 2
+  const thursday = new Date(weekStart);
+  thursday.setDate(thursday.getDate() + 3);
+  thursday.setHours(18, 0, 0, 0);
+  if (thursday.getTime() > Date.now()) {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: '⏳ Défi en cours',
+        body: `${challenge.label} — il te reste quelques jours !`,
+        data: { scope: WEEKLY_CHALLENGE_PREFIX, checkProgress: true, target },
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: thursday,
+      },
+    }).catch(() => undefined);
+  }
 }
 
 export async function syncMilestoneNotifications(profile: UserProfile | null, enabled = true) {

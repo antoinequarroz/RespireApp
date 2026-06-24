@@ -55,13 +55,16 @@ export default function PaywallScreen() {
     packages.find((item) => item.identifier === '$rc_annual') ??
     packages[0];
 
-  const compareRows = [
-    ['Compteur', true, true],
-    ['Economies', true, true],
-    ['SOS', true, true],
-    ['Stats avancees', false, true],
-    ['Journal', false, true],
-    ['Widget', false, true],
+  const compareRows: [string, boolean, boolean][] = [
+    ['Compteur & SOS', true, true],
+    ['Économies & objectifs (1)', true, true],
+    ['Stats & graphiques', true, true],
+    ['Zone Zen (3 techniques)', true, true],
+    ['Journal quotidien', false, true],
+    ['Insights & tendances', false, true],
+    ['Objectifs cagnotte multiples', false, true],
+    ['Wim Hof & catégories notifs', false, true],
+    ['Partage de paliers (image)', false, true],
   ];
 
   const buy = async (identifier: string) => {
@@ -109,7 +112,7 @@ export default function PaywallScreen() {
             marginLeft: 12,
           }}
         >
-          <X size={16} color={colors.textSecondary} strokeWidth={2} />
+          <X size={16} color={colors.textSecondary} strokeWidth={1.5} />
         </Pressable>
       </View>
 
@@ -147,10 +150,10 @@ export default function PaywallScreen() {
           >
             <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 12, flex: 1 }]}>{label}</Text>
             <View style={{ width: 58, alignItems: 'center' }}>
-              {free ? <Check size={14} color={colors.textMuted} strokeWidth={2} /> : <Text style={{ color: colors.textMuted }}>—</Text>}
+              {free ? <Check size={14} color={colors.textMuted} strokeWidth={1.5} /> : <Text style={{ color: colors.textMuted }}>—</Text>}
             </View>
             <View style={{ width: 76, alignItems: 'center' }}>
-              {premium ? <Check size={14} color={colors.accent} strokeWidth={2} /> : <Text style={{ color: colors.textMuted }}>—</Text>}
+              {premium ? <Check size={14} color={colors.accent} strokeWidth={1.5} /> : <Text style={{ color: colors.textMuted }}>—</Text>}
             </View>
           </View>
         ))}

@@ -1,5 +1,5 @@
-import { useRouter } from 'expo-router';
-import { X } from 'lucide-react-native';
+import { type Href, useRouter } from 'expo-router';
+import { Lock, X } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
@@ -7,11 +7,12 @@ import { BreathingExercise, type BreathingTechniqueId } from '@/components/domai
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { FONTS, RADII, SPACING } from '@/constants/theme';
+import { usePremiumGate } from '@/hooks/usePremiumGate';
 import { useTheme } from '@/hooks/useTheme';
 import { i18n } from '@/services/i18n';
 import { useProgressStore } from '@/store/progressStore';
 
-const TECHNIQUES: { id: BreathingTechniqueId; duration: string; labelKey: string }[] = [
+const FREE_TECHNIQUES: { id: BreathingTechniqueId; duration: string; labelKey: string }[] = [
   { id: 'coherence', duration: '5 min', labelKey: 'zen.techniques.coherence' },
   { id: '478', duration: '1 min 30', labelKey: 'zen.techniques.fourSevenEight' },
   { id: 'box', duration: '4 min', labelKey: 'zen.techniques.box' },
@@ -20,8 +21,9 @@ const TECHNIQUES: { id: BreathingTechniqueId; duration: string; labelKey: string
 export default function ZenScreen() {
   const router = useRouter();
   const { colors, fixed } = useTheme();
-  const incrementZenSessionsCompleted = useProgressStore((state) => state.incrementZenSessionsCompleted);
-  const zenSessionsCompleted = useProgressStore((state) => state.zenSessionsCompleted);
+  const incrementZenSessionsCompleted = useProgressStore((s) => s.incrementZenSessionsCompleted);
+  const zenSessionsCompleted = useProgressStore((s) => s.zenSessionsCompleted);
+  const canWimHof = usePremiumGate('zenWimHof');
   const [selectedTechnique, setSelectedTechnique] = useState<BreathingTechniqueId>('coherence');
   const [sessionDone, setSessionDone] = useState(false);
   const [sessionVersion, setSessionVersion] = useState(0);
@@ -49,40 +51,125 @@ export default function ZenScreen() {
             justifyContent: 'center',
           }}
         >
-          <X size={16} color={colors.textPrimary} strokeWidth={2} />
+          <X size={16} color={colors.textPrimary} strokeWidth={1.5} />
         </Pressable>
       </View>
 
-      <View style={{ flexDirection: 'row', gap: 8 }}>
-        {TECHNIQUES.map((technique) => {
-          const active = selectedTechnique === technique.id;
+      {/* Sélecteur techniques */}
+      <View style={{ gap: 8 }}>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          {FREE_TECHNIQUES.map((technique) => {
+            const active = selectedTechnique === technique.id;
+            return (
+              <Pressable
+                key={technique.id}
+                onPress={() => {
+                  setSelectedTechnique(technique.id);
+                  setSessionDone(false);
+                  setSessionVersion((v) => v + 1);
+                }}
+                style={{
+                  flex: 1,
+                  borderRadius: RADII.md,
+                  borderWidth: 1,
+                  borderColor: active ? colors.accentBorder : colors.bgCardBorder,
+                  backgroundColor: active ? colors.accentBg : colors.bgCard,
+                  paddingHorizontal: 10,
+                  paddingVertical: 10,
+                  gap: 3,
+                }}
+              >
+                <Text style={[FONTS.bold, { color: active ? colors.accent : colors.textPrimary, fontSize: 11 }]}>
+                  {i18n.t(technique.labelKey)}
+                </Text>
+                <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 10 }]}>
+                  {technique.duration}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
 
-          return (
-            <Pressable
-              key={technique.id}
-              onPress={() => {
-                setSelectedTechnique(technique.id);
-                setSessionDone(false);
-                setSessionVersion((value) => value + 1);
-              }}
+        {/* Wim Hof — PRO */}
+        {canWimHof ? (
+          <Pressable
+            onPress={() => {
+              setSelectedTechnique('wimhof');
+              setSessionDone(false);
+              setSessionVersion((v) => v + 1);
+            }}
+            style={{
+              borderRadius: RADII.md,
+              borderWidth: 1,
+              borderColor: selectedTechnique === 'wimhof' ? colors.accentBorder : colors.bgCardBorder,
+              backgroundColor: selectedTechnique === 'wimhof' ? colors.accentBg : colors.bgCard,
+              paddingHorizontal: 12,
+              paddingVertical: 10,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 10,
+            }}
+          >
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text style={[FONTS.bold, { color: selectedTechnique === 'wimhof' ? colors.accent : colors.textPrimary, fontSize: 11 }]}>
+                {i18n.t('zen.techniques.wimhof')}
+              </Text>
+              <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 10 }]}>
+                3 rondes · ~3 min
+              </Text>
+            </View>
+            <View
               style={{
-                flex: 1,
-                borderRadius: RADII.md,
+                borderRadius: RADII.full,
+                backgroundColor: colors.accentBg,
                 borderWidth: 1,
-                borderColor: active ? colors.accentBorder : colors.bgCardBorder,
-                backgroundColor: active ? colors.accentBg : colors.bgCard,
-                paddingHorizontal: 10,
-                paddingVertical: 10,
-                gap: 3,
+                borderColor: colors.accentBorder,
+                paddingHorizontal: 8,
+                paddingVertical: 3,
               }}
             >
-              <Text style={[FONTS.bold, { color: active ? colors.accent : colors.textPrimary, fontSize: 11 }]}>
-                {i18n.t(technique.labelKey)}
+              <Text style={[FONTS.bold, { color: colors.accent, fontSize: 8 }]}>PRO ✓</Text>
+            </View>
+          </Pressable>
+        ) : (
+          <Pressable
+            onPress={() => router.push('/paywall' as Href)}
+            style={{
+              borderRadius: RADII.md,
+              borderWidth: 1,
+              borderColor: colors.bgCardBorder,
+              backgroundColor: colors.bgCard,
+              paddingHorizontal: 12,
+              paddingVertical: 10,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 10,
+              opacity: 0.7,
+            }}
+          >
+            <Lock size={14} color={colors.textMuted} strokeWidth={1.5} />
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text style={[FONTS.bold, { color: colors.textSecondary, fontSize: 11 }]}>
+                {i18n.t('zen.techniques.wimhof')}
               </Text>
-              <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 10 }]}>{technique.duration}</Text>
-            </Pressable>
-          );
-        })}
+              <Text style={[FONTS.regular, { color: colors.textMuted, fontSize: 10 }]}>
+                Méthode Wim Hof · 3 rondes
+              </Text>
+            </View>
+            <View
+              style={{
+                borderRadius: RADII.full,
+                backgroundColor: 'rgba(124,58,237,0.10)',
+                borderWidth: 1,
+                borderColor: colors.accentBorder,
+                paddingHorizontal: 8,
+                paddingVertical: 3,
+              }}
+            >
+              <Text style={[FONTS.bold, { color: colors.accent, fontSize: 8 }]}>PRO</Text>
+            </View>
+          </Pressable>
+        )}
       </View>
 
       <BreathingExercise
@@ -97,13 +184,7 @@ export default function ZenScreen() {
         }}
       />
 
-      <Card
-        style={{
-          backgroundColor: colors.bgCard,
-          borderColor: colors.bgCardBorder,
-          gap: 8,
-        }}
-      >
+      <Card style={{ backgroundColor: colors.bgCard, borderColor: colors.bgCardBorder, gap: 8 }}>
         <Text style={[FONTS.bold, { color: colors.textMuted, fontSize: 8, letterSpacing: 1.2, textTransform: 'uppercase' }]}>
           {i18n.t('zen.sessionStats')}
         </Text>
@@ -121,7 +202,7 @@ export default function ZenScreen() {
             label={i18n.t('zen.replay')}
             onPress={() => {
               setSessionDone(false);
-              setSessionVersion((value) => value + 1);
+              setSessionVersion((v) => v + 1);
             }}
           />
           <Button label={i18n.t('common.close')} variant="secondary" onPress={() => router.back()} />

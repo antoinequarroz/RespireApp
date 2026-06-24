@@ -5,9 +5,11 @@ import { getProductConfig, type ProductType } from '@/constants/productConfig';
 
 export type AppLanguage = 'fr' | 'en' | 'de';
 export type AppTheme = 'light' | 'dark' | 'system';
+export type AppCurrency = 'EUR' | 'CHF';
 
 export interface UserProfile {
   productType: ProductType;
+  currency: AppCurrency;
   lastCigaretteAt: string;
   cigarettesPerDay: number;
   packPrice: number;
@@ -118,10 +120,15 @@ export function pickMoneyEquivalent(moneySaved: number, rotationIndex = 0): Rewa
   return source[rotationIndex % source.length] ?? MONEY_EQUIVALENTS[0];
 }
 
-export function formatCurrency(value: number, locale = 'fr-CH'): string {
+export function getCurrencyLocale(currency: AppCurrency) {
+  return currency === 'CHF' ? 'fr-CH' : 'fr-FR';
+}
+
+export function formatCurrency(value: number, currency: AppCurrency = 'EUR'): string {
+  const locale = getCurrencyLocale(currency);
   return new Intl.NumberFormat(locale, {
     style: 'currency',
-    currency: 'EUR',
+    currency,
     maximumFractionDigits: 2,
   }).format(value);
 }

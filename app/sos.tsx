@@ -1,5 +1,6 @@
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import { X } from 'lucide-react-native';
+import { useCallback } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { BreathingExercise } from '@/components/domain/BreathingExercise';
@@ -9,12 +10,36 @@ import { Card } from '@/components/ui/Card';
 import { FONTS, RADII, SPACING } from '@/constants/theme';
 import { useSos } from '@/hooks/useSos';
 import { useTheme } from '@/hooks/useTheme';
-import { i18n } from '@/services/i18n';
+import { canShowDailyMotivation, markMotivationShownToday } from '@/services/motivation';
+import { useProgressStore } from '@/store/progressStore';
+
+function formatCountdown(s: number) {
+  const mm = String(Math.floor(s / 60)).padStart(2, '0');
+  const ss = String(s % 60).padStart(2, '0');
+  return `${mm}:${ss}`;
+}
 
 export default function SosScreen() {
   const router = useRouter();
   const { colors, fixed } = useTheme();
-  const { mode, setMode, sessionDone, completeSession } = useSos();
+  const { mode, setMode, sessionDone, completeSession, countdown, elapsedSeconds } = useSos();
+
+  const handleClose = useCallback(() => {
+    if (elapsedSeconds >= 60) {
+      canShowDailyMotivation()
+        .then((shouldShow) => {
+          if (!shouldShow) { router.back(); return; }
+          return markMotivationShownToday().then(() =>
+            router.replace(
+              `/motivation?trigger=sos&streak=${useProgressStore.getState().appOpenStreak}` as Href,
+            ),
+          );
+        })
+        .catch(() => router.back());
+    } else {
+      router.back();
+    }
+  }, [elapsedSeconds, router]);
 
   return (
     <ScrollView
@@ -22,9 +47,15 @@ export default function SosScreen() {
       contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 52, paddingBottom: SPACING.xxl, gap: 16 }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Text style={[FONTS.black, { color: fixed.sos, fontSize: 14 }]}>{i18n.t('sosScreen.title')}</Text>
+        <View style={{ gap: 2 }}>
+          <Text style={[FONTS.black, { color: fixed.sos, fontSize: 14 }]}>Mode SOS</Text>
+          {/* Countdown */}
+          <Text style={[FONTS.bold, { color: countdown === 0 ? fixed.sos : 'rgba(255,255,255,0.35)', fontSize: 11 }]}>
+            {countdown === 0 ? 'Temps écoulé' : formatCountdown(countdown)}
+          </Text>
+        </View>
         <Pressable
-          onPress={() => router.back()}
+          onPress={handleClose}
           style={{
             width: 28,
             height: 28,
@@ -34,19 +65,12 @@ export default function SosScreen() {
             justifyContent: 'center',
           }}
         >
-          <X size={16} color={colors.textPrimary} strokeWidth={2} />
+          <X size={16} color={colors.textPrimary} strokeWidth={1.5} />
         </Pressable>
       </View>
 
       <View style={{ alignItems: 'center', marginTop: 2 }}>
-        <View
-          style={{
-            width: 28,
-            height: 3,
-            borderRadius: RADII.full,
-            backgroundColor: colors.dividerStrong,
-          }}
-        />
+        <View style={{ width: 28, height: 3, borderRadius: RADII.full, backgroundColor: colors.dividerStrong }} />
       </View>
 
       <View
@@ -61,11 +85,10 @@ export default function SosScreen() {
         }}
       >
         {[
-          { key: 'breathing', label: i18n.t('sosScreen.breathing') },
-          { key: 'game', label: i18n.t('sosScreen.game') },
+          { key: 'breathing', label: 'Respiration' },
+          { key: 'game', label: 'Jeu de distraction' },
         ].map((item) => {
           const active = mode === item.key;
-
           return (
             <Pressable
               key={item.key}
@@ -109,21 +132,20 @@ export default function SosScreen() {
           }}
         >
           <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 18 }]}>
-            {i18n.t('sosScreen.doneTitle')}
+            Tu as tenu. Bravo.
           </Text>
           <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 13 }]}>
-            {i18n.t('sosScreen.doneBody')}
+            L'envie est passée. Chaque victoire compte.
           </Text>
-          <Button label={i18n.t('sosScreen.restart')} onPress={() => router.replace('/sos')} />
-          <Button label={i18n.t('common.close')} variant="secondary" onPress={() => router.back()} />
+          <Button label="Recommencer" onPress={() => router.replace('/sos')} />
+          <Button label="Fermer" variant="secondary" onPress={handleClose} />
         </Card>
       ) : (
-        <Text
-          style={[FONTS.regular, { color: colors.textMuted, fontSize: 11, textAlign: 'center' }]}
-          onPress={() => router.back()}
-        >
-          {i18n.t('sosScreen.finishExercise')}
-        </Text>
+        <Pressable onPress={handleClose} style={{ paddingVertical: 4 }}>
+          <Text style={[FONTS.regular, { color: colors.textMuted, fontSize: 11, textAlign: 'center' }]}>
+            Terminer l'exercice
+          </Text>
+        </Pressable>
       )}
     </ScrollView>
   );
