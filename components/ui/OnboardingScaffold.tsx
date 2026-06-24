@@ -1,6 +1,6 @@
 import { ChevronLeft } from 'lucide-react-native';
 import type { ReactNode } from 'react';
-import { Pressable, Text, useWindowDimensions, View } from 'react-native';
+import { Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FONTS, RADII, SPACING } from '@/constants/theme';
@@ -32,7 +32,6 @@ export function OnboardingScaffold({
   const { colors } = useTheme('dark');
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
-  // Scale down title on small screens (< 750px logical height = iPhone SE / mini)
   const isSmall = height < 750;
   const effectiveTitleSize = isSmall ? Math.round(titleSize * 0.78) : titleSize;
 
@@ -46,6 +45,7 @@ export function OnboardingScaffold({
         paddingBottom: Math.max(insets.bottom + 8, SPACING.lg),
       }}
     >
+      {/* Nav + titre */}
       <View style={{ gap: 12 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <Pressable
@@ -69,7 +69,6 @@ export function OnboardingScaffold({
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
             {Array.from({ length: total }, (_, index) => {
               const active = index + 1 === step;
-
               return (
                 <View
                   key={index}
@@ -91,12 +90,7 @@ export function OnboardingScaffold({
           <Text
             style={[
               FONTS.bold,
-              {
-                color: colors.accent,
-                fontSize: 9,
-                letterSpacing: 1.5,
-                textTransform: 'uppercase',
-              },
+              { color: colors.accent, fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase' },
             ]}
           >
             Etape {step} sur {total}
@@ -117,12 +111,7 @@ export function OnboardingScaffold({
           <Text
             style={[
               FONTS.regular,
-              {
-                color: colors.textSecondary,
-                fontSize: 10,
-                lineHeight: 15,
-                fontStyle: 'italic',
-              },
+              { color: colors.textSecondary, fontSize: 10, lineHeight: 15, fontStyle: 'italic' },
             ]}
           >
             {subtitle}
@@ -130,10 +119,17 @@ export function OnboardingScaffold({
         </View>
       </View>
 
-      <View style={{ flex: 1, marginTop: 10 }}>{children}</View>
+      {/* Contenu scrollable */}
+      <ScrollView
+        style={{ flex: 1, marginTop: 10 }}
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {children}
+      </ScrollView>
 
       {footer ? <View style={{ gap: 12, paddingTop: 16 }}>{footer}</View> : null}
-
     </View>
   );
 }
@@ -177,11 +173,7 @@ export function OnboardingOptionCard({
           <Text
             style={[
               FONTS.regular,
-              {
-                color: selected ? colors.emerald : colors.textMuted,
-                fontSize: 10,
-                marginTop: 4,
-              },
+              { color: selected ? colors.emerald : colors.textMuted, fontSize: 10, marginTop: 4 },
             ]}
           >
             {subtitle}
@@ -202,12 +194,7 @@ export function OnboardingOptionCard({
       >
         {selected ? (
           <View
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: RADII.full,
-              backgroundColor: colors.accent,
-            }}
+            style={{ width: 8, height: 8, borderRadius: RADII.full, backgroundColor: colors.accent }}
           />
         ) : null}
       </View>

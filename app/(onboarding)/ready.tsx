@@ -1,17 +1,19 @@
-import { useRouter } from 'expo-router';
-import { Pressable, Text, View } from 'react-native';
+import { type Href, useRouter } from 'expo-router';
+import { Pressable, ScrollView, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/Button';
 import { FONTS, RADII, SPACING } from '@/constants/theme';
 import { useCounter } from '@/hooks/useCounter';
 import { useTheme } from '@/hooks/useTheme';
-import { formatCurrency, getAvoidedCigarettes } from '@/services/calculations';
+import { formatCurrency, getAvoidedCigarettes, getMoneySaved } from '@/services/calculations';
 import { i18n } from '@/services/i18n';
 import { useUserStore } from '@/store/userStore';
 
 export default function ReadyScreen() {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors } = useTheme('dark');
+  const insets = useSafeAreaInsets();
   const onboardingDraft = useUserStore((state) => state.onboardingDraft);
   const setProfile = useUserStore((state) => state.setProfile);
   const clearOnboardingDraft = useUserStore((state) => state.clearOnboardingDraft);
@@ -20,29 +22,69 @@ export default function ReadyScreen() {
 
   const profile = {
     productType: onboardingDraft?.productType ?? 'cigarette',
+    currency: onboardingDraft?.currency ?? 'EUR',
     lastCigaretteAt: onboardingDraft?.lastCigaretteAt ?? new Date().toISOString(),
     cigarettesPerDay: onboardingDraft?.cigarettesPerDay ?? 10,
     packPrice: onboardingDraft?.packPrice ?? 11.5,
     motivations: onboardingDraft?.motivations ?? [],
   };
-  const cigarettesAvoided = getAvoidedCigarettes(profile.lastCigaretteAt, profile.cigarettesPerDay);
-  const moneySaved = formatCurrency((cigarettesAvoided / 20) * profile.packPrice);
+
+  const avoided = getAvoidedCigarettes(
+    profile.lastCigaretteAt,
+    profile.cigarettesPerDay,
+    profile.productType,
+  );
+  const moneySaved = formatCurrency(
+    getMoneySaved(
+      profile.lastCigaretteAt,
+      profile.cigarettesPerDay,
+      profile.packPrice,
+      profile.productType,
+    ),
+    profile.currency,
+  );
   const totalSmokeFreeDays = Math.max(counter.days, 0);
+  const liveCounter =
+    counter.hours > 0
+      ? `${String(counter.hours).padStart(2, '0')}:${String(counter.minutes).padStart(2, '0')}:${String(counter.seconds).padStart(2, '0')}`
+      : `${String(counter.minutes).padStart(2, '0')}:${String(counter.seconds).padStart(2, '0')}`;
+
+  const stats = [
+    {
+      value: moneySaved,
+      label: i18n.t('onboarding.readyStatSavings'),
+      color: colors.emerald,
+      emoji: '💰',
+    },
+    {
+      value: String(avoided),
+      label: i18n.t('onboarding.readyStatAvoided'),
+      color: colors.accent,
+      emoji: '✨',
+    },
+    {
+      value: `+${totalSmokeFreeDays}j`,
+      label: i18n.t('onboarding.readyStatTime'),
+      color: colors.textPrimary,
+      emoji: '✅',
+    },
+  ];
 
   return (
     <View
       style={{
         flex: 1,
         backgroundColor: colors.bgDeep,
-        paddingHorizontal: SPACING.xl,
-        paddingTop: SPACING.xxl,
-        paddingBottom: SPACING.lg,
-        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        paddingTop: Math.max(insets.top + 12, 32),
+        paddingBottom: Math.max(insets.bottom + 8, 16),
       }}
     >
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: SPACING.xl }}>
-        <Text style={{ fontSize: 20, opacity: 0.85 }}>✦ ✦ ✦</Text>
-
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'space-between', gap: 20 }}
+        showsVerticalScrollIndicator={false}
+      >
+      <View style={{ alignItems: 'center', justifyContent: 'center', gap: 22, paddingTop: 16 }}>
         <View
           style={{
             width: 84,
@@ -55,14 +97,30 @@ export default function ReadyScreen() {
             justifyContent: 'center',
           }}
         >
-          <Text style={[FONTS.black, { color: colors.emerald, fontSize: 32 }]}>✓</Text>
+          <Text style={{ fontSize: 36 }}>✅</Text>
         </View>
 
-        <View style={{ alignItems: 'center', gap: 8 }}>
-          <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 17, textAlign: 'center' }]}>
-            {i18n.t('onboarding.readyStartNow')}
+        <View style={{ alignItems: 'center', gap: 6 }}>
+          <Text
+            style={[
+              FONTS.black,
+              {
+                color: colors.textPrimary,
+                fontSize: 34,
+                lineHeight: 31,
+                textAlign: 'center',
+                maxWidth: 255,
+              },
+            ]}
+          >
+            {i18n.t('onboarding.readyHeroTitle')}
           </Text>
-          <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 13, textAlign: 'center' }]}>
+          <Text
+            style={[
+              FONTS.regular,
+              { color: colors.textSecondary, fontSize: 13, textAlign: 'center', maxWidth: 260 },
+            ]}
+          >
             {i18n.t('onboarding.readyHeroBody')}
           </Text>
         </View>
@@ -70,60 +128,103 @@ export default function ReadyScreen() {
         <View
           style={{
             width: '100%',
-            borderRadius: 18,
+            borderRadius: 14,
             borderWidth: 0.5,
             borderColor: colors.bgCardBorder,
             backgroundColor: colors.bgCard,
-            paddingHorizontal: 12,
-            paddingVertical: 14,
-            flexDirection: 'row',
+            paddingHorizontal: 14,
+            paddingVertical: 16,
+            gap: 14,
           }}
         >
-          {[
-            { value: moneySaved, label: i18n.t('onboarding.readyStatSavings') },
-            { value: String(cigarettesAvoided), label: i18n.t('onboarding.readyStatAvoided') },
-            { value: `+${totalSmokeFreeDays}j`, label: i18n.t('onboarding.readyStatTime') },
-          ].map((item, index) => (
-            <View
-              key={item.label}
-              style={{
-                flex: 1,
-                alignItems: 'center',
-                paddingHorizontal: 6,
-                borderLeftWidth: index === 0 ? 0 : 0.5,
-                borderLeftColor: colors.divider,
-              }}
+          <View style={{ alignItems: 'center', gap: 4 }}>
+            <Text
+              style={[
+                FONTS.bold,
+                {
+                  color: colors.textMuted,
+                  fontSize: 8,
+                  letterSpacing: 1.2,
+                  textTransform: 'uppercase',
+                },
+              ]}
             >
+              {i18n.t('onboarding.readyStartNow')}
+            </Text>
+            <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 11 }]}> 
+              {new Date(profile.lastCigaretteAt).toLocaleString('fr-CH', {
+                day: '2-digit',
+                month: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </Text>
+          </View>
+
+          <View
+            style={{
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: colors.accentBorder,
+              backgroundColor: colors.accentBg,
+              paddingHorizontal: 14,
+              paddingVertical: 14,
+              alignItems: 'center',
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+              <Text style={{ fontSize: 13 }}>⏱️</Text>
               <Text
                 style={[
-                  FONTS.black,
-                  {
-                    color: index === 0 ? colors.emerald : index === 1 ? colors.accent : colors.textPrimary,
-                    fontSize: 16,
-                  },
+                  FONTS.bold,
+                  { color: colors.textMuted, fontSize: 8, letterSpacing: 1.6, textTransform: 'uppercase' },
                 ]}
               >
-                {item.value}
-              </Text>
-              <Text
-                style={[
-                  FONTS.regular,
-                  {
-                    color: colors.textMuted,
-                    fontSize: 9,
-                    marginTop: 4,
-                    textAlign: 'center',
-                  },
-                ]}
-              >
-                {item.label}
+                {i18n.t('home.liveLabel')}
               </Text>
             </View>
-          ))}
+            <Text style={[FONTS.black, { color: colors.accent, fontSize: 30, letterSpacing: -1 }]}>
+              {liveCounter}
+            </Text>
+            <Text
+              style={[
+                FONTS.bold,
+                { color: colors.textMuted, fontSize: 8, letterSpacing: 1.6, textTransform: 'uppercase' },
+              ]}
+            >
+              {i18n.t('home.smokeFreeLabel')}
+            </Text>
+          </View>
+
+          <View style={{ flexDirection: 'row' }}>
+            {stats.map((item, index) => (
+                <View
+                  key={item.label}
+                  style={{
+                    flex: 1,
+                    alignItems: 'center',
+                    paddingHorizontal: 6,
+                    borderLeftWidth: index === 0 ? 0 : 0.5,
+                    borderLeftColor: colors.divider,
+                  }}
+                >
+                  <Text style={{ fontSize: 14 }}>{item.emoji}</Text>
+                  <Text style={[FONTS.black, { color: item.color, fontSize: 16, marginTop: 6 }]}>{item.value}</Text>
+                  <Text
+                    style={[
+                      FONTS.regular,
+                      { color: colors.textMuted, fontSize: 9, marginTop: 4, textAlign: 'center' },
+                    ]}
+                  >
+                    {item.label}
+                  </Text>
+                </View>
+            ))}
+          </View>
         </View>
       </View>
 
-      <View style={{ gap: SPACING.md }}>
+      <View style={{ gap: SPACING.md, paddingBottom: 8 }}>
         <Button
           label={i18n.t('onboarding.start')}
           onPress={() => {
@@ -133,23 +234,13 @@ export default function ReadyScreen() {
             router.replace('/(tabs)');
           }}
         />
-        <Pressable onPress={() => router.push('/last-cigarette')}>
-          <Text style={[FONTS.regular, { color: colors.textMuted, fontSize: 13, textAlign: 'center' }]}>
+        <Pressable onPress={() => router.push('/(onboarding)/last-cigarette' as Href)}>
+          <Text style={[FONTS.regular, { color: colors.textMuted, fontSize: 12, textAlign: 'center' }]}>
             {i18n.t('onboarding.editData')}
           </Text>
         </Pressable>
       </View>
-
-      <View
-        style={{
-          alignSelf: 'center',
-          width: 104,
-          height: 4,
-          borderRadius: RADII.full,
-          backgroundColor: colors.homeIndicator,
-          marginTop: SPACING.lg,
-        }}
-      />
+      </ScrollView>
     </View>
   );
 }

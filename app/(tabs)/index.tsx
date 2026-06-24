@@ -368,11 +368,11 @@ export default function HomeScreen() {
         </Card>
       )}
 
-      {/* Prochain palier + Santé — 2 cols */}
-      <View style={{ flexDirection: 'row', gap: 12, alignItems: 'stretch' }}>
+      {/* Prochain palier + Santé — 2 cols, hauteur fixe */}
+      <View style={{ flexDirection: 'row', gap: 12 }}>
         {/* Prochain palier */}
         <Pressable onPress={() => router.push(`/milestone/${next.id}`)} style={{ flex: 1 }}>
-          <Card style={{ gap: 10, flex: 1, height: '100%' }}>
+          <Card style={{ gap: 10, minHeight: 148 }}>
             <Text style={[FONTS.bold, { color: colors.textMuted, fontSize: 8, letterSpacing: 1.2, textTransform: 'uppercase' }]}>
               Prochain palier
             </Text>
@@ -382,6 +382,7 @@ export default function HomeScreen() {
                 {next.labelFr}
               </Text>
             </View>
+            <View style={{ flex: 1 }} />
             <View
               style={{
                 height: 3,
@@ -408,16 +409,15 @@ export default function HomeScreen() {
 
         {/* Santé */}
         <Pressable onPress={() => router.push('/stats')} style={{ flex: 1 }}>
-          <Card style={{ gap: 10, flex: 1, height: '100%' }}>
+          <Card style={{ gap: 10, minHeight: 148 }}>
             <Text style={[FONTS.bold, { color: colors.textMuted, fontSize: 8, letterSpacing: 1.2, textTransform: 'uppercase' }]}>
               {i18n.t('home.healthTeaser')}
             </Text>
-            <View style={{ gap: 2 }}>
-              <Text style={[FONTS.black, { color: colors.accent, fontSize: 20 }]}>{nextHealthDelay}</Text>
-              <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 10 }]}>
-                prochain bénéfice
-              </Text>
-            </View>
+            <Text style={[FONTS.black, { color: colors.accent, fontSize: 22 }]}>{nextHealthDelay}</Text>
+            <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 10 }]}>
+              prochain bénéfice
+            </Text>
+            <View style={{ flex: 1 }} />
             <Text style={[FONTS.regular, { color: colors.textPrimary, fontSize: 11 }]} numberOfLines={2}>
               {health.next.labelFr}
             </Text>
@@ -428,10 +428,10 @@ export default function HomeScreen() {
         </Pressable>
       </View>
 
-      {/* Zen + Stats rapides — 2 cols */}
-      <View style={{ flexDirection: 'row', gap: 12, alignItems: 'stretch' }}>
+      {/* Zen + Stats rapides — 2 cols, hauteur fixe */}
+      <View style={{ flexDirection: 'row', gap: 12 }}>
         <Pressable onPress={() => router.push('/zen')} style={{ flex: 1 }}>
-          <Card style={{ gap: 8, flex: 1, height: '100%' }}>
+          <Card style={{ gap: 8, minHeight: 148 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               <Text style={{ fontSize: 22 }}>🧘</Text>
               <View
@@ -456,6 +456,7 @@ export default function HomeScreen() {
             <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 14 }]}>
               {i18n.t('zen.homeTitle')}
             </Text>
+            <View style={{ flex: 1 }} />
             <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 11 }]} numberOfLines={2}>
               {i18n.t('zen.homeBody')}
             </Text>
@@ -463,24 +464,22 @@ export default function HomeScreen() {
         </Pressable>
 
         {/* Stats rapides */}
-        <Card style={{ flex: 1, gap: 8, height: '100%' }}>
+        <Card style={{ flex: 1, gap: 0, minHeight: 148, justifyContent: 'space-between' }}>
           <Text style={[FONTS.bold, { color: colors.textMuted, fontSize: 8, letterSpacing: 1.2, textTransform: 'uppercase' }]}>
             En chiffres
           </Text>
-          <View style={{ gap: 10 }}>
-            <View>
-              <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 20 }]}>{avoided}</Text>
-              <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 10 }]}>
-                {i18n.t(`products.${productType}.avoidedLabel`)}
-              </Text>
-            </View>
-            <View style={{ height: 0.5, backgroundColor: colors.divider }} />
-            <View>
-              <Text style={[FONTS.black, { color: colors.accent, fontSize: 20 }]}>{cravingsHandled}</Text>
-              <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 10 }]}>
-                {i18n.t('home.cravingsHandled')}
-              </Text>
-            </View>
+          <View>
+            <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 22 }]}>{avoided}</Text>
+            <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 10 }]}>
+              {i18n.t(`products.${productType}.avoidedLabel`)}
+            </Text>
+          </View>
+          <View style={{ height: 0.5, backgroundColor: colors.divider }} />
+          <View>
+            <Text style={[FONTS.black, { color: colors.accent, fontSize: 22 }]}>{cravingsHandled}</Text>
+            <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 10 }]}>
+              {i18n.t('home.cravingsHandled')}
+            </Text>
           </View>
         </Card>
       </View>
