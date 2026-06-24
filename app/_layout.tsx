@@ -290,7 +290,7 @@ export default function RootLayout() {
     const inLaunchFlow = isSplashRoute || pathname === '/sos' || inOnboardingGroup;
 
     if (!hasCompletedOnboarding && !inLaunchFlow) { router.replace('/'); return; }
-    if (hasCompletedOnboarding && isSplashRoute) { router.replace('/(tabs)'); return; }
+    // isSplashRoute: let index.tsx handle the redirect after its animation plays
     if (hasCompletedOnboarding && inOnboardingGroup) { router.replace('/(tabs)'); return; }
     if (!hasCompletedOnboarding && inTabsGroup) router.replace('/');
   }, [hasCompletedOnboarding, hasHydrated, pathname, router, segments]);

@@ -1,6 +1,7 @@
 import { ChevronLeft } from 'lucide-react-native';
 import type { ReactNode } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, Text, useWindowDimensions, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FONTS, RADII, SPACING } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
@@ -13,6 +14,8 @@ interface OnboardingScaffoldProps {
   children: ReactNode;
   footer?: ReactNode;
   onBack?: () => void;
+  titleSize?: number;
+  titleMaxWidth?: number | `${number}%`;
 }
 
 export function OnboardingScaffold({
@@ -23,20 +26,27 @@ export function OnboardingScaffold({
   children,
   footer,
   onBack,
+  titleSize = 38,
+  titleMaxWidth = '88%',
 }: OnboardingScaffoldProps) {
-  const { colors } = useTheme();
+  const { colors } = useTheme('dark');
+  const insets = useSafeAreaInsets();
+  const { height } = useWindowDimensions();
+  // Scale down title on small screens (< 750px logical height = iPhone SE / mini)
+  const isSmall = height < 750;
+  const effectiveTitleSize = isSmall ? Math.round(titleSize * 0.78) : titleSize;
 
   return (
     <View
       style={{
         flex: 1,
         backgroundColor: colors.bgDeep,
-        paddingHorizontal: SPACING.xl,
-        paddingTop: SPACING.xl,
-        paddingBottom: SPACING.lg,
+        paddingHorizontal: 20,
+        paddingTop: Math.max(insets.top + 8, 20),
+        paddingBottom: Math.max(insets.bottom + 8, SPACING.lg),
       }}
     >
-      <View style={{ gap: SPACING.lg }}>
+      <View style={{ gap: 12 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <Pressable
             onPress={onBack}
@@ -53,10 +63,10 @@ export function OnboardingScaffold({
             }}
             disabled={!onBack}
           >
-            <ChevronLeft size={16} color={colors.textSecondary} strokeWidth={2} />
+            <ChevronLeft size={16} color={colors.textSecondary} strokeWidth={1.5} />
           </Pressable>
 
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
             {Array.from({ length: total }, (_, index) => {
               const active = index + 1 === step;
 
@@ -64,7 +74,7 @@ export function OnboardingScaffold({
                 <View
                   key={index}
                   style={{
-                    width: active ? 18 : 6,
+                    width: active ? 18 : 5,
                     height: 3,
                     borderRadius: RADII.full,
                     backgroundColor: active ? colors.accent : colors.dividerStrong,
@@ -77,7 +87,7 @@ export function OnboardingScaffold({
           <View style={{ width: 28 }} />
         </View>
 
-        <View style={{ gap: 8 }}>
+        <View style={{ gap: 1 }}>
           <Text
             style={[
               FONTS.bold,
@@ -89,29 +99,41 @@ export function OnboardingScaffold({
               },
             ]}
           >
-            {step} / {total}
+            Etape {step} sur {total}
           </Text>
-          <Text style={[FONTS.black, { color: colors.textPrimary, fontSize: 16, lineHeight: 22 }]}>{title}</Text>
-          <Text style={[FONTS.regular, { color: colors.textSecondary, fontSize: 10, lineHeight: 15 }]}>
+          <Text
+            style={[
+              FONTS.black,
+              {
+                color: colors.textPrimary,
+                fontSize: effectiveTitleSize,
+                lineHeight: Math.max(effectiveTitleSize - 3, 30),
+                maxWidth: titleMaxWidth,
+              },
+            ]}
+          >
+            {title}
+          </Text>
+          <Text
+            style={[
+              FONTS.regular,
+              {
+                color: colors.textSecondary,
+                fontSize: 10,
+                lineHeight: 15,
+                fontStyle: 'italic',
+              },
+            ]}
+          >
             {subtitle}
           </Text>
         </View>
       </View>
 
-      <View style={{ flex: 1, marginTop: SPACING.xl }}>{children}</View>
+      <View style={{ flex: 1, marginTop: 10 }}>{children}</View>
 
-      {footer ? <View style={{ gap: SPACING.md, paddingTop: SPACING.lg }}>{footer}</View> : null}
+      {footer ? <View style={{ gap: 12, paddingTop: 16 }}>{footer}</View> : null}
 
-      <View
-        style={{
-          alignSelf: 'center',
-          width: 104,
-          height: 4,
-          borderRadius: RADII.full,
-          backgroundColor: colors.homeIndicator,
-          marginTop: SPACING.lg,
-        }}
-      />
     </View>
   );
 }
@@ -139,8 +161,8 @@ export function OnboardingOptionCard({
         borderWidth: 1,
         borderColor: selected ? colors.borderSelected : colors.bgCardBorder,
         backgroundColor: selected ? colors.cardSelected : colors.bgCard,
-        paddingHorizontal: 14,
-        paddingVertical: subtitle ? 14 : 16,
+        paddingHorizontal: 16,
+        paddingVertical: subtitle ? 13 : 15,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -157,7 +179,7 @@ export function OnboardingOptionCard({
               FONTS.regular,
               {
                 color: selected ? colors.emerald : colors.textMuted,
-                fontSize: 11,
+                fontSize: 10,
                 marginTop: 4,
               },
             ]}
